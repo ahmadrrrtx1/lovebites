@@ -1,0 +1,27 @@
+# build output
+site/
+
+# dependencies
+node_modules/
+
+# internal scratch / QA shots
+shots/
+qa.mjs
+a11y.mjs
+test.mjs
+menu.mjs
+verify.mjs
+
+# backups
+*.bak
+*.bak2
+*.bakD
+*.bakE
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# internal strategy docs (not part of the deploy repo)
+REPORT.md
+REVIEWS-INTEGRATION.md

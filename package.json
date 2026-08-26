@@ -1,0 +1,13 @@
+{
+  "name": "lovebites",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Love Bites — static site (Chiniot · Sargodha · Faisalabad). Zero-dependency Node build.",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs && npx serve@14 site -l tcp://0.0.0.0:4173"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

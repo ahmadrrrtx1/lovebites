@@ -1,0 +1,1082 @@
+/* ==========================================================================
+   LOVE BITES — "THE PRINT SHOP" design system
+   Evolution of the existing DNA: poster energy, real food, real people.
+   ========================================================================== */
+
+@font-face{font-family:"Archivo Black";src:url(/fonts/archivo-black.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0000-00FF}
+@font-face{font-family:"Archivo";src:url(/fonts/archivo-var.woff2) format("woff2-variations");font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF}
+
+:root{
+  /* --- INK & PAPER --- */
+  --ink:#141414;
+  --ink-soft:#2a2724;
+  --paper:#fdf3e3;          /* warm newsprint, evolved from #fffbf7 */
+  --paper-2:#f7e8d0;
+  --white:#fffdf9;
+
+  /* --- THE FIVE INKS (riso palette, from brand tokens) --- */
+  --orange:#ff7a18;         /* was #ff8a2b — pushed for punch */
+  --tomato:#e0322a;         /* was #d32f2b */
+  --cheese:#ffc531;         /* was #ffd54f */
+  --mustard:#e0a52e;
+  --cyan:#26d0bb;           /* was #3dd9c4 */
+  --lettuce:#2f7a36;
+  --bun:#c0782c;
+
+  /* --- STRUCTURE --- */
+  --rule:3px;
+  --rule-thick:5px;
+  --pop:6px;                 /* hard offset shadow distance */
+  --r:14px;
+  --r-lg:22px;
+
+  --f-display:"Archivo Black","Archivo",system-ui,sans-serif;
+  --f-text:"Archivo",system-ui,-apple-system,sans-serif;
+
+  --max:1360px;
+  --gut:clamp(1.1rem,4vw,2.75rem);
+  --safe-b:env(safe-area-inset-bottom,0px);
+
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --ease-print:cubic-bezier(.34,1.42,.44,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:5.5rem}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--f-text);font-weight:600;font-size:clamp(1rem,.96rem + .2vw,1.075rem);
+  line-height:1.55;letter-spacing:-.005em;
+  overflow-x:hidden;
+}
+
+/* Newsprint grain — the "printed" layer over everything */
+body::after{
+  content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.32;
+  mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+
+h1,h2,h3,.dsp{font-family:var(--f-display);font-weight:400;text-transform:uppercase;
+  letter-spacing:-.028em;line-height:.88;margin:0;text-wrap:balance}
+
+.wrap{max-width:var(--max);margin-inline:auto;padding-inline:var(--gut)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+:focus-visible{outline:4px solid var(--ink);outline-offset:3px;border-radius:4px}
+
+/* ── Skip link ─────────────────────────────────────────────── */
+.skip{position:absolute;left:-999px;top:0;z-index:1000;background:var(--ink);color:var(--cheese);
+  padding:.8rem 1.2rem;font-weight:800}
+.skip:focus{left:.5rem;top:.5rem}
+
+/* ══════════════════════════════════════════════════════════════
+   NAV — a printed ticket strip
+   ══════════════════════════════════════════════════════════════ */
+.nav{position:sticky;top:0;z-index:120;background:var(--ink);color:var(--paper);
+  border-bottom:var(--rule-thick) solid var(--ink)}
+.nav__in{max-width:var(--max);margin-inline:auto;padding:.55rem var(--gut);
+  display:flex;align-items:center;gap:clamp(.5rem,2vw,1.6rem)}
+.nav__logo{display:flex;align-items:center;gap:.5rem;font-family:var(--f-display);
+  font-size:1.18rem;letter-spacing:-.03em;text-transform:uppercase;flex:0 0 auto}
+.nav__logo svg{width:1.45em;height:1.45em;flex:0 0 auto}
+/* Official heart-burger mark. Sized by height and width:auto so the artwork
+   keeps its own proportions; the square canvas keeps it optically centred
+   against the wordmark's cap height. */
+/* Tightly cropped artwork, so height maps directly to the visible mark. Sized
+   a little above the wordmark's cap height and nudged to sit on its baseline. */
+.nav__mark{width:auto;height:1.5em;flex:0 0 auto;display:block;
+  object-fit:contain;margin-block:-.3em;position:relative;top:.02em}
+.nav__links{display:flex;gap:.15rem;margin-left:auto;align-items:center}
+.nav__links a{padding:.5rem .78rem;font-size:.86rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.02em;border:2px solid transparent;border-radius:99px;
+  transition:background .18s var(--ease),color .18s var(--ease)}
+.nav__links a:hover{background:rgba(255,255,255,.14)}
+.nav__links a[aria-current="page"]{background:var(--cheese);color:var(--ink)}
+.nav__cta{background:var(--tomato)!important;color:var(--white)!important}
+.nav__cta:hover{background:var(--orange)!important}
+@media (max-width:820px){
+  .nav__links{gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    margin-left:auto;max-width:62vw}
+  .nav__links::-webkit-scrollbar{display:none}
+  .nav__links a{padding:.45rem .6rem;font-size:.76rem;white-space:nowrap}
+}
+
+/* Live status pill */
+.live{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:900;
+  text-transform:uppercase;letter-spacing:.08em;padding:.3rem .6rem;border-radius:99px;
+  border:2px solid currentColor}
+.live__dot{width:.5rem;height:.5rem;border-radius:99px;background:currentColor;
+  animation:pulse 2.4s var(--ease) infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+.live--open{color:#3ddc84}
+.live--shut{color:#ff8f8f}
+.live--ink.live--open{color:#177a3f}
+.live--ink.live--shut{color:#b4231b}
+
+/* ══════════════════════════════════════════════════════════════
+   BUTTONS — printed, stamped, hard shadow
+   ══════════════════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:.85rem 1.4rem;font-family:var(--f-text);font-weight:900;font-size:.92rem;
+  text-transform:uppercase;letter-spacing:.01em;
+  border:var(--rule) solid var(--ink);border-radius:99px;background:var(--white);color:var(--ink);
+  box-shadow:var(--pop) var(--pop) 0 var(--ink);cursor:pointer;
+  transition:transform .16s var(--ease-print),box-shadow .16s var(--ease-print),background .16s var(--ease)}
+.btn:hover{transform:translate(3px,3px);box-shadow:3px 3px 0 var(--ink)}
+.btn:active{transform:translate(var(--pop),var(--pop));box-shadow:0 0 0 var(--ink)}
+.btn--hot{background:var(--tomato);color:var(--white)}
+.btn--cheese{background:var(--cheese)}
+.btn--cyan{background:var(--cyan)}
+.btn--ink{background:var(--ink);color:var(--paper)}
+.btn--wa{background:#1faa53;color:#fff}
+.btn--sm{padding:.6rem 1rem;font-size:.8rem;--pop:4px}
+.btn svg{width:1.1em;height:1.1em;flex:0 0 auto}
+
+/* ══════════════════════════════════════════════════════════════
+   SECTION FURNITURE
+   ══════════════════════════════════════════════════════════════ */
+.band{border-bottom:var(--rule-thick) solid var(--ink);position:relative}
+.band--paper{background:var(--paper)}
+.band--cyan{background:var(--cyan)}
+.band--cheese{background:var(--cheese)}
+.band--orange{background:var(--orange)}
+.band--ink{background:var(--ink);color:var(--paper)}
+.band--tomato{background:var(--tomato);color:var(--white)}
+
+.act{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--f-text);
+  font-weight:900;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;
+  padding:.35rem 0;margin-bottom:1rem;opacity:.72}
+.act::before{content:"";width:2.4rem;height:var(--rule);background:currentColor;display:block}
+
+.h-xl{font-size:clamp(2.6rem,10.5vw,7.4rem)}
+.h-lg{font-size:clamp(2.1rem,7vw,4.6rem)}
+.h-md{font-size:clamp(1.5rem,4vw,2.6rem)}
+.outline{-webkit-text-stroke:3px var(--ink);color:transparent;paint-order:stroke fill}
+.band--ink .outline{-webkit-text-stroke-color:var(--paper)}
+
+.lede{max-width:46ch;font-size:clamp(1rem,.95rem + .4vw,1.2rem);font-weight:600;line-height:1.5}
+
+/* ══════════════════════════════════════════════════════════════
+   ACT 01 — THE CRAVING (hero)
+   ══════════════════════════════════════════════════════════════ */
+.hero{background:var(--orange);position:relative;overflow:hidden;
+  border-bottom:var(--rule-thick) solid var(--ink)}
+.hero__ghost{position:absolute;right:-6%;top:-8%;width:min(58%,620px);opacity:.13;
+  pointer-events:none;transform:rotate(-8deg)}
+.hero__in{position:relative;padding:clamp(2.2rem,7vw,5rem) 0 0;
+  display:grid;gap:clamp(1.4rem,4vw,3rem)}
+.hero h1{font-size:clamp(2.9rem,12.5vw,9.5rem);line-height:.82}
+.hero h1 em{font-style:normal;display:block;-webkit-text-stroke:clamp(2px,.5vw,4px) var(--ink);
+  color:transparent}
+.hero__sub{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin-top:.4rem}
+.hero__kicker{font-weight:900;text-transform:uppercase;letter-spacing:.14em;font-size:.78rem}
+.hero__actions{display:flex;flex-wrap:wrap;gap:.8rem}
+.hero__plate{position:relative;margin-top:1rem}
+.hero__photo{border:var(--rule-thick) solid var(--ink);border-radius:var(--r-lg);
+  overflow:hidden;box-shadow:10px 10px 0 var(--ink);background:var(--ink);
+  aspect-ratio:16/8.5}
+.hero__photo img{width:100%;height:100%;object-fit:cover;filter:saturate(1.12) contrast(1.06)}
+@media (max-width:700px){.hero__photo{aspect-ratio:4/3.4}}
+
+/* Marquee ticker */
+.ticker{background:var(--ink);color:var(--cheese);overflow:hidden;
+  border-top:var(--rule-thick) solid var(--ink);padding:.6rem 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+.ticker__row{display:flex;gap:2rem;width:max-content;animation:slide 26s linear infinite}
+.ticker:hover .ticker__row{animation-play-state:paused}
+.ticker span{font-family:var(--f-display);font-size:clamp(1rem,2.6vw,1.6rem);
+  text-transform:uppercase;white-space:nowrap;display:flex;align-items:center;gap:2rem}
+.ticker span::after{content:"●";color:var(--tomato);font-size:.6em}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* ══════════════════════════════════════════════════════════════
+   ACT 02 — THE POSTER WALL
+   ══════════════════════════════════════════════════════════════ */
+.poster{position:relative;display:block;border:var(--rule) solid var(--ink);border-radius:var(--r);
+  padding:1.15rem 1.15rem 1.35rem;min-height:230px;
+  box-shadow:var(--pop) var(--pop) 0 var(--ink);
+  transition:transform .25s var(--ease-print),box-shadow .25s var(--ease-print);
+  display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.poster:nth-child(4n+1){background:var(--cheese);transform:rotate(-1.6deg)}
+.poster:nth-child(4n+2){background:var(--cyan);transform:rotate(1.1deg)}
+.poster:nth-child(4n+3){background:var(--tomato);color:var(--white);transform:rotate(-.7deg)}
+.poster:nth-child(4n+4){background:var(--white);transform:rotate(1.8deg)}
+.poster:hover,.poster:focus-visible{transform:rotate(0) translate(-3px,-5px) scale(1.02);
+  box-shadow:12px 14px 0 var(--ink);z-index:3}
+.poster__no{font-family:var(--f-display);font-size:.8rem;opacity:.6;letter-spacing:.1em}
+.poster__t{font-family:var(--f-display);text-transform:uppercase;
+  font-size:clamp(1.4rem,3.2vw,2.1rem);line-height:.9;margin:.7rem 0 .35rem}
+.poster__d{font-size:.86rem;font-weight:700;opacity:.85;line-height:1.35}
+.poster__go{margin-top:1rem;font-weight:900;font-size:.78rem;text-transform:uppercase;
+  letter-spacing:.1em;display:flex;align-items:center;gap:.4rem}
+.poster__go svg{width:1em;transition:transform .2s var(--ease)}
+.poster:hover .poster__go svg{transform:translateX(5px)}
+/* tape */
+.poster::before{content:"";position:absolute;top:-11px;left:50%;translate:-50% 0;
+  width:78px;height:22px;background:rgba(255,253,249,.55);
+  border:1px solid rgba(20,20,20,.22);rotate:-2deg}
+
+/* ══════════════════════════════════════════════════════════════
+   ACT 03 — THE FOOD  /  craving machine
+   ══════════════════════════════════════════════════════════════ */
+.crave{padding:clamp(2.4rem,6vw,4.5rem) 0}
+.crave__opts{display:flex;flex-wrap:wrap;gap:.7rem;margin:1.6rem 0 2rem}
+.chip{padding:.72rem 1.15rem;border:var(--rule) solid var(--ink);border-radius:99px;
+  background:var(--white);font-weight:900;font-size:.87rem;text-transform:uppercase;
+  letter-spacing:.01em;cursor:pointer;box-shadow:4px 4px 0 var(--ink);
+  transition:transform .15s var(--ease-print),box-shadow .15s var(--ease-print),background .15s}
+.chip:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--cheese);
+  transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+.crave__out{border:var(--rule-thick) solid var(--ink);border-radius:var(--r-lg);
+  background:var(--white);box-shadow:10px 10px 0 var(--ink);overflow:hidden;
+  display:grid;grid-template-columns:1.05fr .95fr;min-height:280px}
+@media (max-width:760px){.crave__out{grid-template-columns:1fr}}
+.crave__copy{padding:clamp(1.3rem,3.5vw,2.2rem);display:flex;flex-direction:column;gap:.75rem;
+  justify-content:center}
+.crave__verdict{font-family:var(--f-display);text-transform:uppercase;
+  font-size:clamp(1.7rem,4.6vw,3rem);line-height:.9}
+.crave__why{font-weight:700;font-size:.98rem;max-width:38ch}
+.crave__picks{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem}
+.tag{border:2px solid var(--ink);border-radius:99px;padding:.34rem .8rem;
+  font-size:.79rem;font-weight:900;background:var(--cheese)}
+.crave__img{background:var(--ink);position:relative;min-height:230px}
+.crave__img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;
+  filter:saturate(1.12) contrast(1.05)}
+
+/* Food rail */
+.rail{padding:0 0 clamp(2.6rem,7vw,5rem)}
+.rail__track{display:flex;gap:1.2rem;overflow-x:auto;padding:1.4rem var(--gut) 2.4rem;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.rail__track::-webkit-scrollbar{display:none}
+.dish{flex:0 0 min(78vw,420px);scroll-snap-align:center;border:var(--rule) solid var(--ink);
+  border-radius:var(--r-lg);overflow:hidden;background:var(--white);
+  box-shadow:var(--pop) var(--pop) 0 var(--ink);position:relative;
+  transition:transform .22s var(--ease-print)}
+.dish:hover{transform:translateY(-6px)}
+.dish__img{aspect-ratio:4/3;background:var(--ink);overflow:hidden}
+.dish__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s var(--ease)}
+.dish:hover .dish__img img{transform:scale(1.06)}
+.dish__b{padding:1rem 1.1rem 1.2rem;border-top:var(--rule) solid var(--ink)}
+.dish__n{font-family:var(--f-display);text-transform:uppercase;font-size:1.25rem;line-height:.95}
+.dish__m{font-size:.84rem;font-weight:700;opacity:.8;margin-top:.35rem}
+.dish__p{position:absolute;top:.8rem;right:.8rem;background:var(--cheese);
+  border:var(--rule) solid var(--ink);border-radius:99px;padding:.35rem .75rem;
+  font-weight:900;font-size:.82rem;rotate:3deg}
+
+/* ══════════════════════════════════════════════════════════════
+   ACT 04 — THE PEOPLE (memory wall)
+   ══════════════════════════════════════════════════════════════ */
+.people{padding:clamp(2.6rem,7vw,5rem) 0}
+.polas{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+  gap:clamp(1rem,2.6vw,1.8rem);margin-top:2.2rem}
+.pola{background:var(--white);border:var(--rule) solid var(--ink);border-radius:6px;
+  padding:.7rem .7rem 0;box-shadow:var(--pop) var(--pop) 0 var(--ink);
+  transition:transform .25s var(--ease-print),box-shadow .25s var(--ease-print)}
+.pola:nth-child(3n+1){rotate:-2deg}
+.pola:nth-child(3n+2){rotate:1.4deg}
+.pola:nth-child(3n+3){rotate:-.8deg}
+.pola:hover{rotate:0deg;transform:translateY(-7px);box-shadow:10px 12px 0 var(--ink)}
+.pola__i{aspect-ratio:1/1;overflow:hidden;background:var(--ink);border:2px solid var(--ink)}
+.pola__i img{width:100%;height:100%;object-fit:cover}
+.pola__c{padding:.8rem .25rem 1rem;font-weight:800;font-size:.85rem;line-height:1.35}
+.pola__c small{display:block;font-weight:700;opacity:.6;font-size:.74rem;margin-top:.3rem;
+  text-transform:uppercase;letter-spacing:.07em}
+
+/* Real review quotes */
+.quotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;margin-top:2rem}
+.quote{border:var(--rule) solid var(--ink);border-radius:var(--r);padding:1.2rem 1.25rem;
+  background:var(--paper-2);box-shadow:4px 4px 0 var(--ink)}
+.quote p{margin:0 0 .7rem;font-weight:700;font-size:.98rem;line-height:1.45}
+.quote cite{font-style:normal;font-weight:900;font-size:.76rem;text-transform:uppercase;
+  letter-spacing:.08em;opacity:.65}
+.stars{color:var(--tomato);font-size:.9rem;letter-spacing:.1em;margin-bottom:.5rem}
+
+/* ══════════════════════════════════════════════════════════════
+   ACT 05 — FIND YOUR LOVE BITE
+   ══════════════════════════════════════════════════════════════ */
+.spots{padding:clamp(2.6rem,7vw,5rem) 0}
+.spots__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));
+  gap:clamp(1.2rem,3vw,2rem);margin-top:2.4rem}
+.spot{border:var(--rule-thick) solid var(--ink);border-radius:var(--r-lg);overflow:hidden;
+  background:var(--white);box-shadow:8px 8px 0 var(--ink);display:flex;flex-direction:column;
+  transition:transform .22s var(--ease-print),box-shadow .22s var(--ease-print)}
+.spot:hover{transform:translate(-3px,-5px);box-shadow:13px 15px 0 var(--ink)}
+.spot__top{position:relative;aspect-ratio:16/10;overflow:hidden;border-bottom:var(--rule) solid var(--ink)}
+.spot__top img{width:100%;height:100%;object-fit:cover}
+.spot__city{position:absolute;left:.9rem;bottom:.75rem;font-family:var(--f-display);
+  text-transform:uppercase;font-size:clamp(1.5rem,3.4vw,2.1rem);color:var(--white);
+  text-shadow:3px 3px 0 var(--ink);line-height:.9}
+.spot__flag{position:absolute;right:.75rem;top:.75rem;background:var(--white);
+  border:2px solid var(--ink);border-radius:99px;padding:.28rem .6rem;font-size:.68rem;
+  font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.spot__b{padding:1.1rem 1.15rem 1.25rem;display:flex;flex-direction:column;gap:.6rem;flex:1}
+.spot__meta{font-size:.87rem;font-weight:700;line-height:1.4;opacity:.85}
+.spot__row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:auto;padding-top:.6rem}
+.spot__row .btn{flex:1 1 auto}
+.spot__order{font-size:.8rem;font-weight:800;line-height:1.4;padding:.7rem .85rem;
+  border:2px dashed rgba(20,20,20,.3);border-radius:var(--r);background:var(--paper)}
+.spot__order a{text-decoration:underline;text-underline-offset:3px}
+
+/* ══════════════════════════════════════════════════════════════
+   MENU PAGE
+   ══════════════════════════════════════════════════════════════ */
+.branchbar{position:sticky;top:var(--navh,3.9rem);z-index:100;background:var(--ink);
+  border-bottom:var(--rule-thick) solid var(--ink);padding:.55rem 0}
+.branchbar__in{max-width:var(--max);margin-inline:auto;padding-inline:var(--gut);
+  display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.branchbar__lbl{color:var(--paper);font-size:.72rem;font-weight:900;text-transform:uppercase;
+  letter-spacing:.14em;opacity:.7}
+.bswitch{display:flex;gap:.35rem;background:rgba(255,255,255,.1);padding:.25rem;border-radius:99px}
+.bswitch button{padding:.45rem .95rem;border:0;background:transparent;color:var(--paper);
+  font-weight:900;font-size:.82rem;text-transform:uppercase;border-radius:99px;cursor:pointer;
+  transition:background .18s,color .18s}
+.bswitch button[aria-pressed="true"]{background:var(--cheese);color:var(--ink)}
+.branchbar .live{margin-left:auto}
+
+.catbar{position:sticky;top:calc(var(--navh,3.9rem) + var(--barh,3.4rem));z-index:99;background:var(--paper);
+  border-bottom:var(--rule) solid var(--ink)}
+.catbar__in{display:flex;gap:.4rem;overflow-x:auto;padding:.6rem var(--gut);scrollbar-width:none}
+.catbar__in::-webkit-scrollbar{display:none}
+.catbar button{white-space:nowrap;padding:.45rem .85rem;border:2px solid var(--ink);
+  border-radius:99px;background:var(--white);font-weight:800;font-size:.8rem;cursor:pointer}
+.catbar button[aria-pressed="true"]{background:var(--tomato);color:var(--white)}
+
+.vpill{border:2px solid var(--ink);border-radius:99px;padding:.25rem .6rem;font-size:.78rem;
+  font-weight:900;background:var(--paper-2);display:inline-flex;gap:.35rem;align-items:center}
+.vpill b{font-family:var(--f-display);font-weight:400;font-size:.8rem}
+.vpill i{font-style:normal;opacity:.55;font-size:.68rem;text-transform:uppercase}
+
+.pricenote{margin:2.5rem 0 0;padding:1.1rem 1.2rem;border:var(--rule) dashed var(--ink);
+  border-radius:var(--r);background:var(--paper-2);font-size:.88rem;font-weight:700}
+
+/* ══════════════════════════════════════════════════════════════
+   STORY / TIMELINE
+   ══════════════════════════════════════════════════════════════ */
+.tl{display:grid;gap:1rem;margin-top:2rem}
+.tl__row{display:grid;grid-template-columns:auto 1fr;gap:1.2rem;align-items:start;
+  border:var(--rule) solid var(--ink);border-radius:var(--r-lg);padding:1.2rem 1.3rem;
+  background:var(--white);box-shadow:var(--pop) var(--pop) 0 var(--ink)}
+.tl__y{font-family:var(--f-display);font-size:clamp(1.5rem,4vw,2.4rem);
+  background:var(--tomato);color:var(--white);border:var(--rule) solid var(--ink);
+  border-radius:var(--r);padding:.4rem .7rem;line-height:1;rotate:-2deg}
+.tl__row:nth-child(2n) .tl__y{background:var(--cyan);color:var(--ink);rotate:2deg}
+.tl__h{font-family:var(--f-display);text-transform:uppercase;font-size:1.25rem;margin-bottom:.35rem}
+
+.creed{display:grid;gap:.8rem;margin-top:2rem;counter-reset:c}
+.creed li{list-style:none;border-left:var(--rule-thick) solid var(--tomato);padding:.5rem 0 .5rem 1.1rem;
+  font-weight:800;font-size:1.02rem}
+
+/* ══════════════════════════════════════════════════════════════
+   FOOTER + mobile action bar
+   ══════════════════════════════════════════════════════════════ */
+.foot{background:var(--ink);color:var(--paper);padding:clamp(2.4rem,6vw,4rem) 0 calc(6.5rem + var(--safe-b))}
+.foot__top{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:2rem}
+.foot h3{font-size:1.05rem;margin-bottom:.9rem;color:var(--cheese)}
+.foot a{display:block;padding:.24rem 0;font-weight:700;font-size:.92rem;opacity:.85}
+.foot a:hover{opacity:1;color:var(--cheese)}
+.foot__mark{font-family:var(--f-display);font-size:1.6rem;text-transform:uppercase;
+  display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem}
+.foot__mark svg{width:1.5em}
+.foot__bye{margin-top:2.4rem;padding-top:1.4rem;border-top:2px solid rgba(255,255,255,.18);
+  font-size:.8rem;opacity:.6;display:flex;flex-wrap:wrap;gap:.8rem;justify-content:space-between}
+@media (min-width:781px){.foot{padding-bottom:clamp(2.4rem,6vw,4rem)}}
+
+.mbar{position:fixed;left:0;right:0;bottom:0;z-index:130;display:none;
+  background:var(--ink);border-top:var(--rule-thick) solid var(--ink);
+  padding:.5rem .6rem calc(.5rem + var(--safe-b));gap:.45rem}
+@media (max-width:780px){.mbar{display:flex}}
+.mbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:.18rem;
+  padding:.45rem .2rem;border-radius:12px;color:var(--paper);
+  font-size:.66rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.mbar a svg{width:1.25rem;height:1.25rem}
+.mbar a.is-hot{background:var(--tomato);color:#fff}
+.mbar a.is-wa{background:#1faa53;color:#fff}
+
+/* ══════════════════════════════════════════════════════════════
+   PAGE HEADS
+   ══════════════════════════════════════════════════════════════ */
+.phead{padding:clamp(2rem,6vw,4rem) 0 clamp(1.6rem,4vw,2.8rem);
+  border-bottom:var(--rule-thick) solid var(--ink);position:relative;overflow:hidden}
+.phead h1{font-size:clamp(2.4rem,9vw,6.4rem)}
+.phead p{margin:1rem 0 0;font-weight:700;max-width:52ch}
+
+/* Scroll reveal */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.rv.is-in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none}}
+
+/* Easter egg sticker */
+.sticker{position:fixed;z-index:200;left:50%;bottom:clamp(5.6rem,12vw,3rem);
+  transform:translateX(-50%);display:flex;align-items:center;gap:.7rem;
+  font-family:var(--f-display);text-transform:uppercase;font-size:clamp(.95rem,2.4vw,1.1rem);
+  padding:.6rem .7rem .6rem 1rem;border:var(--rule) solid var(--ink);
+  border-radius:99px;background:var(--cheese);color:var(--ink);
+  box-shadow:6px 6px 0 var(--ink);max-width:calc(100vw - 2rem);
+  animation:sticker-slap .55s var(--ease-print) both}
+.sticker strong{white-space:nowrap}
+.sticker span{font-family:var(--f-text);font-weight:700;text-transform:none;font-size:.86em}
+.sticker button{flex:0 0 auto;width:1.7rem;height:1.7rem;border-radius:99px;
+  border:2px solid var(--ink);background:var(--paper);color:var(--ink);
+  font-size:1rem;line-height:1;cursor:pointer;display:grid;place-items:center}
+.sticker button:hover{background:var(--tomato);color:var(--white)}
+@keyframes sticker-slap{
+  0%{transform:translateX(-50%) scale(.4) rotate(-14deg);opacity:0}
+  60%{transform:translateX(-50%) scale(1.08) rotate(3deg);opacity:1}
+  100%{transform:translateX(-50%) scale(1) rotate(-1.5deg);opacity:1}}
+.sticker.is-out{animation:sticker-peel .35s var(--ease) forwards}
+@keyframes sticker-peel{to{transform:translateX(-50%) scale(.9) translateY(18px);opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  .sticker{animation:none;transform:translateX(-50%) rotate(-1.5deg)}
+  .sticker.is-out{animation:none;opacity:0}}
+@media (max-width:780px){.sticker{bottom:5.6rem}}
+
+/* --- nav lift once you leave the top of the page --- */
+.nav.is-stuck{box-shadow:0 6px 0 rgba(20,20,20,.18)}
+
+/* ── Cards carry their own ink regardless of the band they sit in ── */
+.dish,.pola,.spot,.quote,.item,.poster,.crave__out{color:var(--ink)}
+.band--ink .dish__n,.band--ink .dish__m,
+.band--ink .item__n,.band--ink .quote p,.band--ink .quote cite{color:var(--ink)}
+.band--ink .h-md,.band--ink .h-lg,.band--ink .h-xl,.band--ink .act{color:var(--paper)}
+.dish__p{display:inline-flex;gap:.3em;align-items:baseline;font-weight:800}
+.dish__p b{font-weight:900}
+
+/* ── Branch cards: hue behind transparent line art, legible city name ── */
+.spot__top img{object-fit:contain;padding:.6rem .6rem 1.9rem;mix-blend-mode:multiply;opacity:.55}
+.spot__top::after{content:"";position:absolute;inset:auto 0 0 0;height:52%;
+  background:linear-gradient(to top,rgba(20,20,20,.55),transparent);pointer-events:none}
+.spot__city{z-index:2;text-shadow:0 2px 0 var(--ink),2px 3px 0 var(--ink)}
+.spot__flag{z-index:2}
+
+/* ── Touch: nothing smaller than 44px on coarse pointers ── */
+@media (pointer:coarse){
+  .nav__logo,.nav__links a,.nav__cta,.btn,.chip,.bswitch button,.catbar button,.mbar a{
+    min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  .foot a{min-height:40px;display:flex;align-items:center}
+}
+
+/* ── Narrow nav: the mobile bar carries wayfinding, so trim the top row ── */
+@media (max-width:560px){
+  .nav__links{max-width:none}
+  .nav__links a:not(.nav__cta):not([aria-current="page"]){display:none}
+  .nav__cta{margin-left:auto}
+}
+
+/* Category tag on branch "classics" cards */
+.item__cat{font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.1em;
+  opacity:.62;margin:.15rem 0 .5rem}
+
+/* Live pill on a branch hero sits on the branch hue — give it an ink chip */
+.phead .live,.phead .live--ink.live--open,.phead .live--ink.live--shut{
+  background:var(--ink);color:var(--paper);border-color:var(--ink);padding:.42rem .8rem}
+.phead .live--ink.live--open .live__dot{background:#4ade80}
+.phead .live--ink.live--shut .live__dot{background:#f87171}
+
+/* ============================================================
+   UPGRADE PASS — LOCATION PASSES, MAPS, REAL POSTERS
+   ============================================================ */
+
+/* --- honest star ratings: dim the unearned ones --- */
+.stars__off{opacity:.26}
+
+/* --- band tint used by the map section --- */
+.band--paper2{background:var(--paper-2)}
+
+/* ---------- COLLECTIBLE LOCATION PASS ---------- */
+.spots__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:clamp(1.2rem,3vw,2rem)}
+/* city + est. share one baseline row so long names (FAISALABAD) never collide */
+/* torn-ticket perforation between stub and body */
+
+/* ---------- PER-BRANCH MAP ---------- */
+.mapband{padding:clamp(2.2rem,6vw,3.8rem) 0}
+.mapwrap{margin-top:1.5rem;display:grid;grid-template-columns:1.55fr 1fr;gap:1.2rem;align-items:stretch}
+.mapframe{width:100%;height:100%;min-height:330px;border:var(--rule-thick) solid var(--ink);
+  border-radius:var(--r-lg);box-shadow:8px 10px 0 var(--ink);display:block;background:var(--paper-2)}
+.mapcard{border:var(--rule-thick) solid var(--ink);border-radius:var(--r-lg);background:var(--paper);
+  box-shadow:8px 10px 0 var(--ink);padding:1.15rem;display:flex;flex-direction:column;gap:.5rem}
+.mapcard__k{margin:0;font-family:var(--f-display);text-transform:uppercase;font-size:1.15rem;line-height:1}
+.mapcard__a{margin:0;font-weight:800;font-size:.9rem;line-height:1.45}
+.mapcard__l{margin:0;font-size:.85rem;opacity:.72;line-height:1.45}
+.mapcard .btn{margin-top:auto;align-self:flex-start}
+.mapcard__note{margin:0;font-size:.72rem;line-height:1.4;opacity:.6;border-top:2px solid rgba(20,20,20,.15);padding-top:.55rem}
+@media (max-width:820px){
+  .mapwrap{grid-template-columns:1fr}
+  .mapframe{min-height:260px}
+}
+
+/* ---------- POSTER WALL: real campaign prints as navigation ---------- */
+/* taped-up, slightly imperfect hang */
+@media (prefers-reduced-motion:reduce){
+  .pw,.pw:hover,.pw:focus-visible{transform:none;transition:none}
+}
+/* arrow glyph inside poster CTAs must not balloon */
+
+/* ---------- REVIEWS: printed-receipt feel, honest provenance ---------- */
+.reviews__meta{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin:.9rem 0 0;
+  font-size:.9rem;font-weight:700}
+.reviews__score{font-family:var(--f-display);font-size:1.35rem;background:var(--ink);
+  color:var(--cheese);padding:.12rem .55rem;border-radius:var(--r)}
+.reviews__src{font-family:var(--f-display);font-size:.76rem;text-transform:uppercase;
+  letter-spacing:.06em;text-decoration:underline;text-underline-offset:3px;
+  display:inline-flex;align-items:center;gap:.3rem}
+.reviews__src svg{width:1em;height:1em}
+.reviews__note{margin:1.3rem 0 0;font-size:.76rem;line-height:1.5;max-width:62ch;opacity:.72;
+  border-top:2px solid rgba(20,20,20,.18);padding-top:.6rem}
+.quotes{margin-top:1.5rem}
+
+/* ---------- MENU: CATEGORY POSTER WALL ---------- */
+.catwall{padding:clamp(1.6rem,4vw,2.6rem) 0 .4rem;background:var(--paper)}
+.catwall__h{font-family:var(--f-display);text-transform:uppercase;margin:0 0 1.1rem;
+  font-size:clamp(1.1rem,3vw,1.6rem);letter-spacing:-.01em}
+.catwall__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));
+  gap:clamp(.6rem,1.6vw,.95rem)}
+.cp{position:relative;text-align:left;cursor:pointer;font:inherit;color:var(--cp-fg,var(--ink));
+  background:var(--cp-bg,var(--paper-2));border:var(--rule) solid var(--ink);
+  border-radius:var(--r);padding:.85rem .8rem .75rem;min-height:118px;
+  display:flex;flex-direction:column;gap:.18rem;box-shadow:4px 5px 0 var(--ink);
+  transition:transform .2s var(--ease-print),box-shadow .2s var(--ease-print)}
+.cp:hover,.cp:focus-visible{transform:translate(-2px,-3px);box-shadow:7px 9px 0 var(--ink)}
+.cp:active{transform:translate(1px,2px);box-shadow:2px 3px 0 var(--ink)}
+.cp__no{font-family:var(--f-display);font-size:.62rem;letter-spacing:.12em;opacity:.6}
+.cp__kick{font-size:.66rem;font-weight:900;text-transform:uppercase;letter-spacing:.09em;opacity:.85}
+.cp__t{font-family:var(--f-display);text-transform:uppercase;line-height:.95;
+  font-size:clamp(.98rem,2.2vw,1.14rem);margin-top:auto}
+.cp__f{font-size:.72rem;font-weight:800;opacity:.82;letter-spacing:.01em}
+@media (prefers-reduced-motion:reduce){.cp{transition:none}}
+
+/* ---------- REAL BRANCH PHOTOGRAPHY ---------- */
+/* Pass stub: photo sits under the monoline city art, knocked back so the
+   ink drawing still reads as the hero. */
+
+/* Branch header: photo bleeds behind the type, brand hue still dominant. */
+.phead{position:relative;overflow:hidden;isolation:isolate}
+.phead__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:.30;filter:saturate(.75);mix-blend-mode:luminosity;z-index:-2;pointer-events:none}
+.phead__art{position:absolute;right:-4%;top:0;height:120%;width:auto;object-fit:contain;opacity:.32;
+  z-index:-1;pointer-events:none}
+
+/* Branch photo strip — taped contact-sheet grid.
+   Every cell is a uniform 4:3 tile and aligns to the top of its row, so a
+   wrapped last item never stretches to fill the row height. */
+.shots{margin-top:1.6rem;display:grid;gap:1.1rem;
+  grid-template-columns:repeat(4,1fr);align-items:start}
+.shot{margin:0;align-self:start;background:var(--paper);
+  border:var(--rule) solid var(--ink);border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:7px 9px 0 var(--ink);
+  transition:transform .28s var(--ease-print),box-shadow .28s var(--ease-print)}
+.shot:nth-child(2n){rotate:-.5deg}
+.shot:nth-child(3n){rotate:.55deg}
+.shot:hover,.shot:focus-within{rotate:0deg;transform:translate(-3px,-4px);
+  box-shadow:11px 14px 0 var(--ink)}
+.shot img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;display:block;
+  border-bottom:var(--rule) solid var(--ink)}
+.shot figcaption{padding:.75rem .85rem .9rem;color:var(--ink);display:flex;
+  flex-direction:column;gap:.18rem}
+.shot figcaption strong{font-family:var(--f-display);text-transform:uppercase;
+  font-size:.86rem;letter-spacing:.01em;line-height:1.15}
+.shot figcaption span{font-size:.79rem;font-weight:700;opacity:.66;line-height:1.4}
+@media (max-width:900px){.shots{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.shots{grid-template-columns:1fr}}
+
+/* =========================================================================
+   PHASE D — POSTER WALL, LOVE WALL, BRANCH PASSES, IMAGE-FIRST MENU
+   ========================================================================= */
+
+/* ---------- ACT 02 · THE POSTER WALL (drag rail, no arrows) ---------- */
+.wall{padding:clamp(2.6rem,6vw,4.4rem) 0 clamp(2.2rem,5vw,3.4rem);overflow:hidden}
+.wall__head{display:grid;grid-template-columns:1fr minmax(0,32ch);gap:1.4rem 2.5rem;
+  align-items:end;margin-bottom:clamp(1.6rem,4vw,2.4rem)}
+.wall__lede{margin:0;font-weight:700;font-size:1rem;line-height:1.55;opacity:.85}
+.wall__rail{overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;cursor:grab;
+  padding-block:.6rem 1.6rem;outline:none}
+.wall__rail::-webkit-scrollbar{display:none}
+.wall__rail:focus-visible{outline:3px solid var(--cheese);outline-offset:-3px}
+.wall__rail.is-drag{cursor:grabbing;scroll-snap-type:none}
+.wall__rail.is-drag a{pointer-events:none}
+.wall__track{display:flex;gap:clamp(1rem,2.4vw,1.7rem);list-style:none;margin:0;
+  padding:0 max(var(--gut),calc((100vw - var(--max))/2))}
+.pw{flex:0 0 min(74vw,310px);scroll-snap-align:center}
+.pw__a{display:flex;flex-direction:column;height:100%;text-decoration:none;color:var(--paper)}
+.pw__frame{display:block;border:var(--rule-thick) solid var(--ink);border-radius:var(--r);
+  overflow:hidden;background:var(--pw-bg);box-shadow:10px 12px 0 rgba(0,0,0,.55);
+  transition:transform .45s var(--ease-print),box-shadow .45s var(--ease-print)}
+.pw__img{display:block;width:100%;height:auto;aspect-ratio:2/3;object-fit:cover}
+.pw__a:hover .pw__frame,.pw__a:focus-visible .pw__frame{transform:translate(-4px,-6px);
+  box-shadow:16px 19px 0 rgba(0,0,0,.6)}
+.pw__a:focus-visible{outline:none}
+.pw__a:focus-visible .pw__frame{outline:3px solid var(--cheese);outline-offset:4px}
+.pw__meta{display:flex;flex-direction:column;gap:.34rem;padding:.95rem .2rem 0}
+.pw__kick{font-family:var(--f-display);font-size:.66rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--pw-bg)}
+.pw__t{font-family:var(--f-display);text-transform:uppercase;font-size:1.12rem;
+  line-height:.98;letter-spacing:-.01em}
+.pw__d{font-size:.83rem;font-weight:600;line-height:1.5;opacity:.72;max-width:34ch}
+.pw__go{margin-top:.2rem;font-size:.7rem;font-weight:900;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--pw-bg);
+  background-image:linear-gradient(currentColor,currentColor);
+  background-size:0% 2px;background-repeat:no-repeat;background-position:0 100%;
+  align-self:flex-start;padding-bottom:2px;transition:background-size .4s var(--ease-print)}
+.pw__a:hover .pw__go,.pw__a:focus-visible .pw__go{background-size:100% 2px}
+.wall__prog{height:3px;background:rgba(253,243,227,.2);border-radius:2px;overflow:hidden}
+.wall__bar{display:block;height:100%;width:22%;background:var(--cheese);
+  border-radius:2px;transform-origin:left center;transition:transform .12s linear}
+
+.band--paper2{background:var(--paper-2);border-block:var(--rule-thick) solid var(--ink)}
+/* ---------- REVIEW STRIP — the word on the street ----------
+   Two rows on an ink band travelling in opposite directions. The counter-
+   motion is what makes it read as a living wall rather than one sliding
+   list. Row A is Google, row B is foodpanda. */
+.lovewall{padding:clamp(2.6rem,6vw,4.2rem) 0 clamp(2.2rem,5vw,3.2rem);overflow:hidden}
+.lovewall__head{text-align:center;max-width:min(100%,64rem);margin-inline:auto}
+/* centred variant: no leading rule, and full-strength cheese — the base .act
+   sets opacity:.72, which was greying the brand yellow out */
+/* .band--ink .act (0,2,0) sets paper, so the centred variant has to match that
+   specificity to win — a bare .act--c (0,1,0) silently loses. */
+.act--c,.band--ink .act--c{display:block;color:var(--cheese);opacity:1;margin-bottom:.6rem}
+.act--c::before,.act--c::after{display:none}
+/* the headline is one statement — let it use the full band width and only
+   break where it has to, instead of stacking into four short lines */
+.lovewall__head .h-lg{margin:0;line-height:.92;text-wrap:balance;
+  font-size:clamp(2rem,5.6vw,4.1rem)}
+.lovewall__lede{margin:1rem auto 0;font-weight:700;font-size:.95rem;line-height:1.55;
+  opacity:.72;max-width:52ch}
+.lovewall__note{margin:1.7rem auto 0;font-size:.74rem;font-weight:700;line-height:1.6;
+  opacity:.5;max-width:64ch;text-align:center}
+
+.mqs{display:flex;flex-direction:column;gap:clamp(.8rem,2vw,1.1rem);
+  margin-top:clamp(1.8rem,4vw,2.6rem)}
+.mq{display:flex;gap:clamp(.8rem,2vw,1.1rem);
+  overflow-x:auto;overscroll-behavior-x:contain;
+  scrollbar-width:none;-ms-overflow-style:none;cursor:grab;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.mq::-webkit-scrollbar{display:none}
+.mq.is-drag{cursor:grabbing}
+.mq.is-drag a{pointer-events:none}
+.mq__row{display:flex;gap:clamp(.8rem,2vw,1.1rem);list-style:none;margin:0;padding:0;
+  flex:0 0 auto;animation:mq 68s linear infinite}
+/* opposite directions: the second row is simply reversed */
+.mq--b .mq__row{animation-name:mq-rev;animation-duration:76s}
+.mq:hover .mq__row,.mq:focus-within .mq__row,.mq.is-held .mq__row{animation-play-state:paused}
+@keyframes mq{from{transform:translateX(0)}
+  to{transform:translateX(calc(-100% - clamp(.8rem,2vw,1.1rem)))}}
+@keyframes mq-rev{from{transform:translateX(calc(-100% - clamp(.8rem,2vw,1.1rem)))}
+  to{transform:translateX(0)}}
+
+/* the card: a clean printed note on the dark band */
+.tkt{flex:0 0 clamp(260px,25vw,318px);display:flex;flex-direction:column;gap:.55rem;
+  background:var(--paper);color:var(--ink);
+  border:2px solid var(--ink);border-radius:10px;
+  padding:1rem 1.1rem 1.05rem;
+  box-shadow:6px 7px 0 rgba(0,0,0,.55);
+  transition:transform .22s var(--ease-print),box-shadow .22s var(--ease-print)}
+.mq:not(.is-drag) .tkt:hover{transform:translate(-2px,-3px);
+  box-shadow:9px 11px 0 rgba(0,0,0,.6)}
+.tkt__stars{color:var(--cheese);font-size:.82rem;letter-spacing:.1em;white-space:nowrap;
+  -webkit-text-stroke:.6px rgba(20,20,20,.55)}
+.tkt__stars i{font-style:normal;opacity:.25}
+.tkt__q{margin:0;font-size:.9rem;font-weight:700;line-height:1.5}
+.tkt__by{margin-top:auto;font-family:var(--f-display);font-size:.66rem;
+  letter-spacing:.09em;text-transform:uppercase;opacity:.62}
+
+/* ---------- LOCATION PASS — restored ticket anatomy ----------
+   The card is a collectible pass: numbered stub, city line-art over the real
+   branch photograph, a perforated tear, then the body and the pill CTA row.
+   Depth is layered box-shadow (ink plate + branch --hue plate) rather than
+   pseudo-elements, because .rv sets a transform and a negative-z-index child
+   would paint behind the card's own background. */
+.pass{position:relative;display:flex;flex-direction:column;background:var(--paper);
+  border:var(--rule-thick) solid var(--ink);border-radius:var(--r-lg);
+  box-shadow:
+    6px 7px 0 0 var(--ink),
+    14px 16px 0 0 var(--hue,var(--cheese)),
+    14px 16px 0 3px var(--ink);
+  transition:transform .3s var(--ease-print),box-shadow .3s var(--ease-print)}
+.pass:hover,.pass:focus-within{transform:translate(-4px,-5px);
+  box-shadow:
+    8px 10px 0 0 var(--ink),
+    19px 22px 0 0 var(--hue,var(--cheese)),
+    19px 22px 0 3px var(--ink)}
+
+/* stub -------------------------------------------------------------------- */
+.pass__stub{position:relative;aspect-ratio:16/10;overflow:hidden;
+  border-bottom:var(--rule) dashed var(--ink);
+  border-radius:calc(var(--r-lg) - 4px) calc(var(--r-lg) - 4px) 0 0}
+.pass__photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:saturate(.9) contrast(1.04);opacity:.58}
+.pass__stub::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(20,20,20,0) 38%,rgba(20,20,20,.10) 58%,rgba(20,20,20,.42) 100%)}
+/* the city monoline symbol is the branch's identity mark — it stays the hero */
+.pass__art{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;
+  padding:.55rem .55rem 2.3rem;mix-blend-mode:multiply;opacity:.42}
+.pass__no{position:absolute;left:.8rem;top:.7rem;z-index:2;font-family:var(--f-display);
+  font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;background:var(--ink);
+  color:var(--paper);padding:.22rem .55rem;border-radius:999px}
+.pass__flag{position:absolute;right:.7rem;top:.7rem;z-index:2;background:var(--white);
+  border:2px solid var(--ink);border-radius:999px;padding:.2rem .55rem;
+  font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+/* city + est. share one baseline row so long names (FAISALABAD) never collide */
+.pass__cityrow{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;
+  align-items:baseline;justify-content:space-between;gap:.5rem;padding:.55rem .85rem .6rem}
+.pass__city{margin:0;font-family:var(--f-display);line-height:.88;text-transform:uppercase;
+  color:var(--ink);font-size:clamp(1.5rem,4.4vw,2.35rem);letter-spacing:-.01em;
+  min-width:0;overflow-wrap:anywhere;
+  text-shadow:0 1px 0 rgba(253,243,227,.7),0 0 14px rgba(253,243,227,.45)}
+.pass__since{flex:0 0 auto;font-size:.66rem;font-weight:900;text-transform:uppercase;
+  letter-spacing:.09em;opacity:.75;white-space:nowrap}
+
+/* perforated tear between stub and body ----------------------------------- */
+.pass__perf{height:0;border-top:2px dashed rgba(20,20,20,.35);position:relative}
+.pass__perf::before,.pass__perf::after{content:"";position:absolute;top:-9px;
+  width:16px;height:16px;border-radius:50%;background:var(--paper-2);
+  border:2px solid var(--ink)}
+.pass__perf::before{left:-9px}
+.pass__perf::after{right:-9px}
+
+/* body -------------------------------------------------------------------- */
+.pass__b{padding:1.15rem 1.15rem 1.25rem;display:flex;flex-direction:column;gap:.75rem;flex:1}
+.pass__tag{margin:0;font-family:var(--f-display);text-transform:uppercase;
+  font-size:.95rem;letter-spacing:.01em}
+.pass__rows{margin:0;display:flex;flex-direction:column;gap:.5rem}
+.pass__rows>div{display:grid;grid-template-columns:4.4rem 1fr;gap:.6rem;align-items:baseline}
+.pass__rows dt{font-family:var(--f-display);font-size:.66rem;text-transform:uppercase;
+  letter-spacing:.11em;opacity:.6}
+.pass__rows dd{margin:0;font-size:.86rem;font-weight:700;line-height:1.42}
+.pass__src{font-size:.72rem;font-weight:800;opacity:.6;text-transform:uppercase;
+  letter-spacing:.05em}
+
+/* pill CTA row — the branch card's signature ------------------------------ */
+/* Four pills on a strict 2x2 grid: identical widths, identical heights, one
+   gap. Hierarchy comes from fill weight, not from size — "This spot" carries
+   the brand cheese, WhatsApp its own green, the other two stay quiet. */
+.pass__row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;
+  margin-top:auto;padding-top:.9rem}
+.pass__row .btn{width:100%;min-height:44px;padding-inline:.5rem;
+  font-size:.76rem;letter-spacing:.02em;white-space:nowrap}
+.pass__row .btn svg{width:1em;height:1em}
+
+/* ---------- MENU HERO — poster statement ---------- */
+.mhero{background:var(--cheese);border-bottom:var(--rule-thick) solid var(--ink);
+  padding:clamp(2.2rem,6vw,3.6rem) 0 clamp(2.2rem,6vw,3.4rem);position:relative;overflow:hidden}
+.mhero__in{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(1.6rem,4vw,3rem);align-items:center}
+.mhero__txt .lede{margin-top:1rem;max-width:44ch}
+.mhero__poster{margin:0;justify-self:end;max-width:340px;width:100%;
+  border:var(--rule-thick) solid var(--ink);border-radius:var(--r);overflow:hidden;
+  box-shadow:12px 14px 0 var(--ink);transform:rotate(-1.6deg)}
+.mhero__poster img{display:block;width:100%;height:auto}
+
+/* ---------- MENU CATEGORIES — each one its own moment ---------- */
+.menusec{padding:clamp(2.4rem,6vw,4rem) 0 0;
+  scroll-margin-top:calc(var(--navh,3.9rem) + var(--barh,3.4rem) + var(--cath,3.6rem) + 12px)}
+.cathead{display:flex;align-items:flex-end;justify-content:space-between;gap:1.5rem;
+  padding-bottom:1rem;margin-bottom:1.4rem;border-bottom:var(--rule-thick) solid var(--ink);
+  position:relative}
+.cathead__kick{margin:0 0 .35rem;font-family:var(--f-display);font-size:.66rem;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--cat-fg,var(--ink));
+  background:var(--cat-bg,var(--cheese));display:inline-block;padding:.22rem .5rem;
+  border:2px solid var(--ink);border-radius:3px}
+.cathead h2{font-size:clamp(1.7rem,4.6vw,2.8rem);line-height:.92;margin:0}
+.cathead__n{margin:.45rem 0 0;font-size:.78rem;font-weight:800;opacity:.6;
+  text-transform:uppercase;letter-spacing:.06em}
+.cathead__img{margin:0;flex:0 0 clamp(120px,20vw,190px);aspect-ratio:1;overflow:hidden;
+  border:var(--rule) solid var(--ink);border-radius:var(--r);
+  box-shadow:7px 8px 0 var(--ink);transform:rotate(1.4deg);background:var(--ink)}
+.cathead__img img{display:block;width:100%;height:100%;object-fit:cover}
+
+/* ---------- MENU ITEMS — image first, still scannable ---------- */
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  gap:clamp(.9rem,2vw,1.3rem);align-items:start}
+.item{display:flex;flex-direction:column;background:var(--white);
+  border:var(--rule) solid var(--ink);border-radius:var(--r);overflow:hidden;
+  transition:transform .3s var(--ease-print),box-shadow .3s var(--ease-print)}
+.item:hover{transform:translate(-3px,-4px);box-shadow:8px 9px 0 var(--ink)}
+.item__img{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--ink);
+  border-bottom:var(--rule) solid var(--ink)}
+.item__img img{display:block;width:100%;height:100%;object-fit:cover;
+  transition:transform .55s var(--ease)}
+.item:hover .item__img img{transform:scale(1.05)}
+/* a discreet dot marks a styled stand-in shot rather than a real photograph */
+.item__img img[data-illus]::after{content:none}
+.item__img:has(img[data-illus])::after{content:"";position:absolute;right:.5rem;bottom:.5rem;
+  width:7px;height:7px;border-radius:50%;background:var(--paper);opacity:.55;
+  box-shadow:0 0 0 1.5px rgba(20,20,20,.5)}
+.item__star{position:absolute;left:.55rem;top:.55rem;z-index:2;background:var(--cheese);
+  border:2px solid var(--ink);border-radius:100px;padding:.2rem .55rem;
+  font-size:.6rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+.item__star--flat{position:static;display:inline-block;margin-bottom:.2rem}
+.item__b{display:flex;flex-direction:column;gap:.5rem;padding:.85rem .9rem 1rem;flex:1}
+.item__n{margin:0;font-family:var(--f-display);text-transform:uppercase;
+  font-size:1.02rem;line-height:1.02;letter-spacing:-.005em}
+.item__v{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:auto;padding-top:.15rem}
+.item--star{outline:3px solid var(--cheese);outline-offset:-3px}
+.item--noimg{background:var(--paper-2);border-style:solid}
+.item--noimg .item__b{padding:1rem .95rem 1.05rem;gap:.6rem}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:900px){
+  .wall__head{grid-template-columns:1fr;align-items:start}
+  .mhero__in{grid-template-columns:1fr;gap:1.8rem}
+  .mhero__poster{justify-self:start;max-width:260px;transform:rotate(-1.2deg)}
+  .cathead{flex-direction:row;align-items:center}
+  .cathead__img{flex-basis:clamp(96px,26vw,140px)}
+}
+@media (max-width:620px){
+  .pw{flex:0 0 76vw}
+  .pass__rows>div{grid-template-columns:1fr;gap:.1rem}
+  .pass__rows dt{opacity:.45}
+  .pass__minor{gap:.15rem}
+  .pass__more{margin-left:0;width:100%}
+  .items{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.8rem}
+  .item__n{font-size:.92rem}
+  .cathead{flex-direction:column;align-items:flex-start;gap:1rem}
+  .cathead__img{flex-basis:auto;width:100%;aspect-ratio:16/9;transform:none}
+  .tkt{flex-basis:78vw}
+}
+@media (prefers-reduced-motion:reduce){
+  /* no automatic movement — the strip becomes a plain swipeable scroller,
+     and the second (duplicate) row is removed so nothing repeats */
+  /* .mq--b .mq__row sets animation-name later in the sheet at higher
+     specificity, so `animation:none` alone does not stop the reversed row. */
+  .mq__row,.mq--b .mq__row{animation:none}
+  .mq__row[aria-hidden="true"]{display:none}
+  .mq{scrollbar-width:thin}
+  .pw__frame,.item,.pass{transition:none}
+}
+
+/* ---------- MENU STICKY BAR ON SMALL SCREENS ----------
+   Appended last on purpose: these override base .branchbar__in / .bswitch rules
+   that are declared earlier in the file at equal specificity. */
+@media (max-width:620px){
+  .branchbar{padding:.4rem 0}
+  .branchbar__lbl{display:none}
+  .branchbar__in{flex-wrap:nowrap;gap:.4rem;min-width:0}
+  /* The open/closed pill is dropped here, not shrunk: the nav already carries a
+     live OPEN NOW control, and three legible city names matter more than a
+     duplicate status. Full width lets FAISALABAD render without truncating. */
+  .branchbar .live{display:none}
+  .bswitch{flex:1 1 auto;min-width:0;justify-content:space-between;width:100%}
+  .bswitch button{padding:.45rem .35rem;font-size:.72rem;flex:1 1 0;min-width:0;
+    letter-spacing:0;white-space:nowrap}
+}
+
+@media (max-width:620px){
+  }
+
+/* Review strip on phones: cards get a touch narrower so a second one always
+   peeks in, which is what tells the reader the strip continues. */
+@media (max-width:620px){
+  .tkt{flex:0 0 min(78vw,286px)}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THE POSTER WALL PAGE
+   The posters are the loud part. This page is the disciplined
+   frame around them: everything hangs straight, on one grid,
+   at one aspect ratio, with real breathing room.
+   ══════════════════════════════════════════════════════════════ */
+.whero{background:var(--paper-2);padding:clamp(2.4rem,6vw,4.6rem) 0 clamp(2.2rem,5vw,3.6rem);
+  border-bottom:var(--rule-thick) solid var(--ink)}
+.whero__in{display:grid;grid-template-columns:1.25fr .75fr;gap:clamp(1.6rem,4vw,3.4rem);
+  align-items:center}
+.whero__lede{margin:1.4rem 0 0;font-weight:700;font-size:1.02rem;line-height:1.6;
+  max-width:46ch;opacity:.85}
+.whero__poster{margin:0;justify-self:end;width:min(100%,320px);
+  border:var(--rule-thick) solid var(--ink);border-radius:var(--r);overflow:hidden;
+  box-shadow:14px 16px 0 var(--ink);background:var(--paper)}
+.whero__poster img{display:block;width:100%;height:auto;aspect-ratio:2/3;object-fit:cover}
+
+/* carousel band ------------------------------------------------------------ */
+.wcar{padding:clamp(2.6rem,6vw,4.2rem) 0 clamp(2rem,5vw,3rem);overflow:hidden}
+.wcar__head{display:grid;grid-template-columns:1fr minmax(0,32ch);gap:1.3rem 2.5rem;
+  align-items:end;margin-bottom:clamp(1.5rem,3.5vw,2.3rem)}
+.wcar__lede{margin:0;font-weight:700;font-size:1rem;line-height:1.55;opacity:.85}
+
+/* the full collection grid ------------------------------------------------- */
+.wgrid{padding:clamp(2.6rem,6vw,4.4rem) 0}
+.wgrid__lede{margin:1rem 0 0;font-weight:700;font-size:1rem;line-height:1.55;
+  max-width:52ch;opacity:.8}
+.wgrid__list{list-style:none;margin:clamp(1.8rem,4vw,2.8rem) 0 0;padding:0;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:clamp(1.4rem,3vw,2.2rem)}
+/* Each card is a 3-row grid (frame / title block / cta) so the captions and
+   the call-to-action share a baseline across the row no matter how many lines
+   a title wraps to. Ragged CTA positions were what made the wall look untidy. */
+.wcard{display:grid}
+.wcard__a{display:grid;grid-template-rows:auto 1fr auto;gap:.85rem;
+  text-decoration:none;color:var(--ink)}
+/* every frame is the same 2:3 box, so the wall reads as a grid, not a scatter */
+.wcard__frame{display:block;border:var(--rule-thick) solid var(--ink);border-radius:var(--r);
+  overflow:hidden;background:var(--pw-bg,var(--paper-2));box-shadow:8px 10px 0 var(--ink);
+  transition:transform .3s var(--ease-print),box-shadow .3s var(--ease-print)}
+.wcard__frame img{display:block;width:100%;height:auto;aspect-ratio:2/3;object-fit:cover}
+.wcard__a:hover .wcard__frame,.wcard__a:focus-visible .wcard__frame{
+  transform:translate(-4px,-6px);box-shadow:13px 16px 0 var(--ink)}
+.wcard__a:focus-visible{outline:none}
+.wcard__a:focus-visible .wcard__frame{outline:3px solid var(--tomato);outline-offset:4px}
+.wcard__meta{display:flex;flex-direction:column;gap:.3rem}
+
+.wcard__kick{font-family:var(--f-display);font-size:.64rem;letter-spacing:.14em;
+  text-transform:uppercase;opacity:.55}
+.wcard__t{font-family:var(--f-display);text-transform:uppercase;font-size:1.02rem;
+  line-height:1.06;letter-spacing:-.01em}
+.wcard__go{margin-top:auto;padding-top:.15rem;font-size:.68rem;font-weight:900;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--tomato);
+  background-image:linear-gradient(currentColor,currentColor);
+  background-size:0 2px;background-repeat:no-repeat;background-position:0 100%;
+  transition:background-size .3s var(--ease-print);align-self:flex-start}
+.wcard__a:hover .wcard__go,.wcard__a:focus-visible .wcard__go{background-size:100% 2px}
+.wgrid__note{margin:clamp(1.8rem,4vw,2.6rem) 0 0;font-size:.8rem;font-weight:700;
+  line-height:1.6;max-width:56ch;opacity:.62}
+
+/* closing band ------------------------------------------------------------- */
+.wend{padding:clamp(2.4rem,6vw,4rem) 0}
+.wend__in{display:flex;align-items:center;justify-content:space-between;
+  gap:1.5rem;flex-wrap:wrap}
+.wend__in .h-lg{margin:0}
+
+@media (max-width:900px){
+  .whero__in{grid-template-columns:1fr;gap:1.8rem}
+  .whero__poster{justify-self:start;width:min(72%,280px)}
+  .wcar__head{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .wgrid__list{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1.1rem}
+  .wcard__t{font-size:.88rem}
+  .whero__poster{width:min(84%,260px)}
+}
+
+/* homepage teaser foot: progress line and the CTA share one row */
+.wall__foot{display:flex;align-items:center;gap:clamp(1rem,3vw,2rem);flex-wrap:wrap}
+.wall__foot .wall__prog{flex:1 1 200px}
+
+/* ---------- CONTACT — say it to our face ------------------------------------
+   Same ticket DNA as the branch cards: paper cards, ink borders, hard offset
+   shadows, pill actions. The social row borrows the review ticket look so the
+   page reads as one system, not three ideas. */
+.cgrid{list-style:none;padding:0;margin:2.2rem 0 0;display:grid;
+  grid-template-columns:repeat(3,1fr);gap:clamp(1rem,2.4vw,1.5rem)}
+.ccard{display:flex;flex-direction:column;gap:1.1rem;background:var(--white);
+  border:var(--rule-thick) solid var(--ink);border-radius:var(--r-lg);
+  box-shadow:8px 8px 0 var(--ink);padding:1.35rem 1.35rem 1.5rem}
+.ccard__top{display:flex;align-items:center;gap:.95rem;border-bottom:var(--rule) dashed var(--ink);
+  padding-bottom:1rem}
+.ccard__art{width:52px;height:52px;object-fit:contain;flex:0 0 auto}
+.ccard__city{font-family:var(--f-display);text-transform:uppercase;font-size:1.3rem;
+  line-height:1;margin:0}
+.ccard__sub{margin:.45rem 0 0;font-size:.85rem;font-weight:700;line-height:1.45}
+.cacts{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:auto}
+.cact{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:46px;
+  padding:.6rem .7rem;font-family:var(--f-text);font-weight:900;font-size:.8rem;
+  text-transform:uppercase;letter-spacing:.02em;border:var(--rule) solid var(--ink);
+  border-radius:99px;background:var(--white);color:var(--ink);box-shadow:4px 4px 0 var(--ink);
+  text-decoration:none;
+  transition:transform .16s var(--ease-print),box-shadow .16s var(--ease-print)}
+.cact:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.cact:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+.cact svg{width:16px;height:16px;flex:0 0 auto}
+.cact--call{grid-column:1/-1;justify-content:flex-start;gap:.8rem;background:var(--tomato);
+  color:var(--white);border:var(--rule-thick) solid var(--ink);min-height:58px;
+  box-shadow:5px 5px 0 var(--ink)}
+.cact--call .cact__ic{display:flex;width:34px;height:34px;border-radius:50%;
+  align-items:center;justify-content:center;background:rgba(255,255,255,.16);
+  border:2px solid rgba(255,255,255,.55);flex:0 0 auto}
+.cact--call .cact__tx{display:flex;flex-direction:column;gap:.12rem;line-height:1.05;text-align:left}
+.cact--call small{font-size:.62rem;font-weight:800;letter-spacing:.16em;opacity:.85}
+.cact--call strong{font-size:1.02rem;font-weight:900;font-variant-numeric:tabular-nums}
+.cact--wa{background:#1faa53;color:#fff}
+.cact--fp{background:var(--cyan)}
+.cacts--solo .cact--wa{grid-column:1/-1}
+.cacts__na{grid-column:1/-1;margin:0;padding:.15rem .2rem;font-size:.8rem;font-weight:700;
+  line-height:1.4;opacity:.72}
+.cacts__dir{grid-column:1/-1;display:flex;align-items:center;justify-content:center;
+  margin-top:.15rem;font-size:.78rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.cnote{margin:1.6rem 0 0;font-size:.85rem;font-weight:700;opacity:.65;max-width:60ch}
+
+.soc__list{list-style:none;padding:0;margin:2.2rem 0 0;display:grid;
+  grid-template-columns:repeat(4,1fr);gap:1rem}
+.soc__a,.soc__na{display:flex;flex-direction:column;gap:.7rem;height:100%;
+  background:var(--paper);color:var(--ink);border:var(--rule-thick) solid var(--ink);
+  border-radius:var(--r);box-shadow:7px 8px 0 rgba(0,0,0,.5);padding:1.2rem;
+  text-decoration:none;transition:transform .18s var(--ease-print),box-shadow .18s var(--ease-print)}
+.soc__a:hover,.soc__a:focus-visible{transform:translate(-3px,-4px);box-shadow:11px 13px 0 rgba(0,0,0,.55)}
+.soc__a:focus-visible{outline:3px solid var(--cheese);outline-offset:3px}
+.soc__ic{width:40px;height:40px;border:var(--rule) solid var(--ink);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;background:var(--cheese);flex:0 0 auto}
+.soc__ic svg{width:19px;height:19px}
+.soc__ic--ig{background:var(--cyan)}
+.soc__ic--fb{background:var(--cheese)}
+.soc__ic--fp{background:var(--tomato);color:var(--white)}
+.soc__n{font-family:var(--f-display);text-transform:uppercase;font-size:1.02rem;line-height:1.15;
+  display:flex;flex-direction:column;gap:.3rem}
+.soc__n small{font-family:var(--f-text);font-size:.76rem;font-weight:800;letter-spacing:.04em;
+  text-transform:none;opacity:.6}
+.soc__d{font-size:.84rem;font-weight:700;line-height:1.4;opacity:.85}
+.soc__ft{margin-top:auto;display:block;padding-top:.7rem;border-top:var(--rule) dashed var(--ink);
+  text-align:center;font-weight:900;font-size:.76rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tomato)}
+.soc__ft--off{color:inherit;opacity:.4;border-color:rgba(253,243,227,.35)}
+.soc__na{background:transparent;color:var(--paper);border:3px dashed rgba(253,243,227,.45);
+  box-shadow:none}
+.soc__na .soc__ic{background:transparent;border-color:rgba(253,243,227,.45);color:var(--paper)}
+.soc__na .soc__d,.soc__na .soc__n small{opacity:.65}
+
+.office__in{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(1.5rem,4vw,3rem);
+  align-items:center}
+.office__card{display:flex;flex-direction:column;gap:1rem;align-items:flex-start;
+  background:var(--white);border:var(--rule-thick) solid var(--ink);border-radius:var(--r-lg);
+  box-shadow:8px 8px 0 var(--ink);padding:1.4rem 1.6rem}
+.office__card .btn{width:100%;text-transform:none;letter-spacing:0;word-break:break-word}
+.office__card p{margin:.2rem 0 0;font-size:.92rem;font-weight:700;line-height:1.55}
+@media (max-width:980px){.cgrid{grid-template-columns:1fr}
+  .soc__list{grid-template-columns:repeat(2,1fr);gap:.9rem}
+  .office__in{grid-template-columns:1fr}}
+@media (max-width:480px){.cacts{grid-template-columns:1fr}}
+
+/* ---------- POSTER MAKER — the print shop ------------------------------------
+   Controls sit in a bordered panel on the ink band; the live canvas hangs in
+   the same frame the wall posters use, so a generated print and a shop print
+   are indistinguishable in weight and treatment. */
+.wmake__head{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(1.4rem,4vw,3rem);
+  align-items:end}
+.wmake__lede{margin:0;font-weight:700;line-height:1.5;max-width:44ch}
+.mk{display:grid;grid-template-columns:minmax(310px,430px) minmax(280px,360px);
+  gap:clamp(1.4rem,4vw,3.2rem);justify-content:center;align-items:start;margin-top:2.4rem}
+.mk__group{border:2px dashed rgba(253,243,227,.38);border-radius:var(--r);padding:1.05rem 1.1rem 1.2rem}
+.mk__group + .mk__group{margin-top:1rem}
+.mk__lab{margin:0 0 .8rem;font-size:.74rem;font-weight:900;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--cheese)}
+.mk__lab label{cursor:pointer;color:inherit}
+.mk__chips{display:flex;flex-wrap:wrap;gap:.55rem}
+.mk__chips .chip{padding:.62rem 1.05rem;font-size:.82rem;--pop:4px}
+.mk__in{width:100%;padding:.8rem 1.2rem;border:var(--rule) solid var(--ink);border-radius:99px;
+  background:var(--white);color:var(--ink);font-family:var(--f-text);font-weight:900;
+  font-size:.92rem;letter-spacing:.03em;text-transform:uppercase;box-shadow:4px 4px 0 rgba(0,0,0,.45)}
+.mk__in::placeholder{color:#8a8377;opacity:1}
+.mk__in:focus{outline:3px solid var(--cheese);outline-offset:2px}
+.mk__hint{margin:.6rem 0 0;font-size:.78rem;font-weight:700;opacity:.55}
+.mk__row{display:flex;flex-wrap:wrap;gap:.6rem}
+.mk__row .btn{padding:.72rem 1.15rem;font-size:.82rem;--pop:4px;min-height:44px}
+.mk__stage{margin:0;display:flex;flex-direction:column;gap:.7rem;justify-items:center}
+.mk__frame{display:block;width:min(100%,330px);border:var(--rule-thick) solid var(--ink);
+  border-radius:var(--r);overflow:hidden;box-shadow:10px 12px 0 rgba(0,0,0,.55);background:var(--pw-bg,var(--paper))}
+.mk__frame canvas{display:block;width:100%;height:auto}
+.mk__stage figcaption{font-size:.76rem;font-weight:700;letter-spacing:.05em;opacity:.5;
+  text-transform:uppercase;text-align:center}
+@media (max-width:960px){
+  .mk{grid-template-columns:minmax(0,1fr);max-width:560px;margin-inline:auto}
+  .mk__stage{order:-1}
+  .mk__frame{width:min(64vw,290px);margin-inline:auto}
+  .wmake__head{grid-template-columns:1fr}
+}
