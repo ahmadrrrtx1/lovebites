@@ -362,3 +362,27 @@ Existing routes (9) all kept — no removals, no regressions (650/650 local refe
 > "Same Love Bites identity — dramatically better execution."
 
 The poster-wall personality, the five-ink riso palette, Archivo display type, ticket cards, the "no cart, we believe in people" voice and the Act structure are untouched. What changed is everything a restaurant client's lawyer, customers, Google and an accessibility reviewer would look at: **the site now tells the truth precisely, asks for nothing, guards itself, and reads as finished.**
+
+---
+
+## Round 2 — client polish pass (September 2026, commit `6c5eb92`)
+
+Follow-up requests from review, all implemented without touching the round-1 guarantees (no routes, CTAs or features removed; same identity).
+
+| # | Request | What shipped |
+|---|---|---|
+| a | "Loads cleanly on mobile" | Playwright mobile pass at **360 px and 390 px**: 16 route loads → **0 horizontal overflow** (scrollWidth = viewport on every page), **0 console/page errors**, all statuses 200. |
+| b | "Make poster generator more better" | Generator now has **six prints** — new **Pizza** (flat riso slice built from shapes) and **Bite** (ink canvas, the heart mark) styles; word pool grown to 15; download filename now carries the custom words (`love-bites-bite-poster-extra-cheese.png`). All 6 styles verified rendering with distinct palettes and synced `aria-pressed`. |
+| c | Footer "Love Bites" big, exact theme + neon | `.foot__neon` wordmark: **LOVE** (cheese glow) + heart glyph (drop-shadow glow) + **BITES** (tomato glow), layered 5-stop `text-shadow`s in the site's exact palette, one-shot flicker-on then slow hum — fully disabled under `prefers-reduced-motion`. Verified 360 px (wraps to two lines) and 1440 px. |
+| d | Animations + food elements | Floating pizza in the home hero, pizza + burger collage art on the menu poster; `floaty` bob (7–9.5 s, staggered), hero headline rise-in + photo pop (once, no-preference only). Zero horizontal overflow from overhangs. |
+| e | Menu must ask city first | Native `<dialog class="citygate">` ("Where are you eating?") shows on **fresh** `/menu/` visits only. Picking a city calls the existing branch switcher (persists via `#slug` — reload lands straight on that city, gate never nags again), deep links (`/menu/#faisalabad`) skip it, ESC closes it safely, and no-JS visitors still get the full default menu behind it. |
+| f | Variant pills "not good — clean + hover + shadows, all three spots" | Pill rebuilt as a two-part chip: **ink size badge (cheese letters) + display-font price**, sticker `box-shadow: 3px 3px 0 ink`, hover lift `translate(-2,-3)` → `5px 7px` shadow, active press-down. Classic cards on the ink band get tomato offset shadows. Verified on all three spot pages + menu (246 pills) via computed styles and screenshots. |
+| g | Office card touching footer | `.office` gets its own vertical rhythm (`clamp(2.4rem…4.4rem)`); measured **43 px clear** between card and footer at 390 px, card hover-lift added. |
+| h | New posters | Two new 760×1140 riso prints — `pw-slice.jpg` and `pw-burger.jpg`, textless, exact five-ink palette; home + wall copy now dynamic (`${POSTERS.length}` = 10). |
+| i | "Test, make sure nothing breaks" | Full static suite green: **14 pages, 632 links (466 internal, 0 broken), 22 JSON-LD parse, 0 dup ids / h1 / heading jumps / missing alts, CSS balanced, all JS `node --check` clean.** Plus the Playwright pass above and maker/gate/interaction tests. |
+
+**Contrast re-check (new pairs):** all pass — gate eyebrow re-mixed to tomato×ink **6.1:1**, badges 11.2:1, pills 18.4:1, note 5.0:1, neon core 17.2:1 (large/decorative).
+
+**New client flag:** the two new wall prints are AI stand-ins (like `public/food/gen/*`) — **client approval required before they represent real in-store prints.**
+
+**Residual (unchanged from §K):** device-lab checks (real-phone scroll, iOS/Android poster download, Lighthouse) still documented for staging.
