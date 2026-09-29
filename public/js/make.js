@@ -1,5 +1,5 @@
 /* ---- poster maker -----------------------------------------------------------
-   The wall prints are ours. This little machine lets anyone print one of four
+   The wall prints are ours. This little machine lets anyone print one of six
    designs for themselves — drawn live on a canvas with the same fonts, the
    same five inks and the same heart-burger as the shop posters. Everything
    happens on the device: no uploads, no storage, just a picture to keep.
@@ -30,7 +30,9 @@
     love:    { label:'Love',    bg:C.paper,  fg:C.ink,   pop:C.tomato, accent:C.cheese },
     hotline: { label:'Hotline', bg:C.mustard,fg:C.ink,   pop:C.paper,  accent:C.tomato },
     crave:   { label:'Crave',   bg:C.cyan,   fg:C.ink,   pop:C.paper,  accent:C.tomato },
-    eat:     { label:'Eat',     bg:C.tomato, fg:C.paper, pop:C.cheese, accent:C.paper }
+    eat:     { label:'Eat',     bg:C.tomato, fg:C.paper, pop:C.cheese, accent:C.paper },
+    pizza:   { label:'Pizza',   bg:C.cheese, fg:C.ink,   pop:C.tomato, accent:C.paper },
+    bite:    { label:'Bite',    bg:C.ink,    fg:C.paper, pop:C.cheese, accent:C.tomato }
   };
   var PHONES = [
     ['CHINIOT', '+92 47 6331462'],
@@ -38,7 +40,8 @@
     ['FAISALABAD', '+92 315 2821112']
   ];
   var POOL = ['MORE CHEESE','FOR MY SQUAD','AT 1 A.M.','EXTRA SAUCE','NO ONIONS',
-              'HUNGRY AGAIN','TEAM PIZZA','FOR AHMED','FRIDAY MOOD','MEGA BITE'];
+              'HUNGRY AGAIN','TEAM PIZZA','FOR AHMED','FRIDAY MOOD','MEGA BITE',
+              'ONE MORE SLICE','LATE NIGHT','NO SHARING','EXTRA DIP','HOT & MESSY'];
   var style = 'love', timer = null;
 
   /* ---------- little drawing kit ---------- */
@@ -188,7 +191,47 @@
     heart(W / 2, 884, 240, null, t.fg, 7);
     txt('ACHHA KHANA, ACHHI ZINDAGI', W / 2, 1010, 22, TEXT, 900, t.fg, 6);
   }
-  var DRAWS = { love: drawLove, hotline: drawHotline, crave: drawCrave, eat: drawEat };
+  // Pizza: a slice built from flat shapes — wedge, crust, pepperoni — same
+  // ink-outlined screen-print language as the shop prints.
+  function pizzaSlice (cx, cy, s, body, pep) {
+    ctx.save();
+    ctx.translate(cx, cy); ctx.rotate(-0.14);
+    ctx.lineWidth = 6; ctx.strokeStyle = '#141414'; ctx.lineJoin = 'round';
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.78, -s * 0.5);
+    ctx.quadraticCurveTo(0, -s * 0.95, s * 0.78, -s * 0.5);
+    ctx.lineTo(0, s * 0.92);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); // crust band
+    ctx.moveTo(-s * 0.78, -s * 0.5);
+    ctx.quadraticCurveTo(0, -s * 0.95, s * 0.78, -s * 0.5);
+    ctx.quadraticCurveTo(0, -s * 0.66, -s * 0.78, -s * 0.5);
+    ctx.fillStyle = '#e0a52e'; ctx.fill(); ctx.stroke();
+    var dots = [[-0.28, -0.28, 0.14], [0.3, -0.2, 0.12], [0.04, 0.14, 0.13], [0.02, -0.48, 0.1]];
+    dots.forEach(function (d) {
+      ctx.beginPath(); ctx.arc(d[0] * s, d[1] * s, d[2] * s, 0, Math.PI * 2);
+      ctx.fillStyle = pep; ctx.fill(); ctx.stroke();
+    });
+    ctx.restore();
+  }
+  function drawPizza (t, s) {
+    txt('ONE MORE SLICE', W / 2, 336, 28, TEXT, 900, t.fg, 12);
+    big('PIZZA', W / 2, 520, fit('PIZZA', BLACK, 210, W - M * 2, null, 5), t.pop, 11, t.fg);
+    pizzaSlice(W / 2, 760, 215, t.accent, t.pop);
+    if (s) { pill('FOR ' + s, 1010, 76, t.pop, C.ink, t.fg); }
+    else txt('THE CRUST IS THE BEST PART.', W / 2, 1014, 22, TEXT, 800, t.fg, 5);
+  }
+  // Bite: the heart mark itself, on ink — the shop's neon-corner look.
+  function drawBite (t, s) {
+    txt('FOOD NEVER BREAKS YOUR', W / 2, 330, 28, TEXT, 900, t.fg, 9);
+    big('HEART', W / 2, 500, fit('HEART', BLACK, 168, W - M * 2, null, 4), t.pop, 12, t.accent);
+    heart(W / 2, 740, 270, t.pop, t.fg, 8);
+    if (s) { pill('FOR ' + s, 1010, 76, t.pop, C.ink, t.fg); }
+    else txt('THE BITE IS YOU.', W / 2, 1014, 22, TEXT, 800, t.fg, 6);
+  }
+  var DRAWS = { love: drawLove, hotline: drawHotline, crave: drawCrave, eat: drawEat,
+                pizza: drawPizza, bite: drawBite };
 
   /* ---------- render + wire up ---------- */
   function render () {
@@ -234,7 +277,8 @@
       }
       var a = document.createElement('a');
       a.href = URL.createObjectURL(b);
-      a.download = 'love-bites-' + style + '-poster.' + ext;
+      var slug = (input && input.value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      a.download = 'love-bites-' + style + '-poster' + (slug ? '-' + slug.slice(0, 24) : '') + '.' + ext;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
     }, type, type === 'image/jpeg' ? 0.92 : undefined);

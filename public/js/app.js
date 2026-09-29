@@ -143,6 +143,24 @@
       const h = location.hash.slice(1);
       if (panels.some(p => p.dataset.branchPanel === h)) setBranch(h, false);
     });
+
+    /* ---------- CITY GATE — ask which city first ---------------------
+       Fresh visit (no #deep-link): open a branded dialog before the menu.
+       Choosing sets the branch, persists it and replaces the URL hash, so a
+       reload lands straight on that city. No <dialog> support? The default
+       menu is already rendered — everything still works.               */
+    try {
+      const gate = document.querySelector('[data-citygate]');
+      if (gate && typeof gate.showModal === 'function' && !location.hash) {
+        gate.querySelectorAll('[data-cityopt]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            setBranch(btn.dataset.cityopt);
+            gate.close();
+          });
+        });
+        gate.showModal();
+      }
+    } catch (e) { /* never trap the user behind a dialog */ }
   }
 
   /* ---------- 3. CATEGORY JUMP BAR -------------------------- */

@@ -150,7 +150,26 @@ const I = {
   ig: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.15" fill="currentColor" stroke="none"/></svg>`,
   fb: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7h2.6l.4-3h-3V9.1c0-.9.3-1.5 1.6-1.5h1.5V4.9c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8V11H8v3h2.7v7h2.8Z"/></svg>`,
   tt: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.3 2.3 1.7 3.8 4 4v3.1c-1.5 0-2.9-.5-4-1.3v6.6c0 3.9-2.6 6.6-6.1 6.6A5.9 5.9 0 0 1 2.5 16c0-3.3 2.6-5.9 6-5.9l1 .1v3.2a3 3 0 1 0 2.1 2.9V3h5Z"/></svg>`,
-  bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8h13l-1.2 12.5H6.7L5.5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`
+  bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8h13l-1.2 12.5H6.7L5.5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`,
+  // Decorative food line-art — flat brand inks, thick outlines, matches the shop's prints.
+  pizza: `<svg viewBox="0 0 120 124" aria-hidden="true" fill="none" stroke-linejoin="round">
+    <path d="M14 32 Q60 8 106 32 L60 114 Z" fill="#ffc531" stroke="#141414" stroke-width="5"/>
+    <path d="M14 32 Q60 10 106 32" stroke="#141414" stroke-width="5"/>
+    <path d="M23 39 Q60 21 97 39" stroke="#141414" stroke-width="4" fill="none"/>
+    <circle cx="47" cy="54" r="8.5" fill="#e0322a" stroke="#141414" stroke-width="4"/>
+    <circle cx="76" cy="64" r="7.5" fill="#e0322a" stroke="#141414" stroke-width="4"/>
+    <circle cx="57" cy="86" r="7" fill="#e0322a" stroke="#141414" stroke-width="4"/>
+    <circle cx="63" cy="42" r="6.5" fill="#e0322a" stroke="#141414" stroke-width="4"/>
+    <path d="M40 66 q6 5 13 1" stroke="#e0322a" stroke-width="4" stroke-linecap="round" fill="none"/>
+  </svg>`,
+  burger: `<svg viewBox="0 0 132 124" aria-hidden="true" fill="none" stroke-linejoin="round">
+    <path d="M16 46 Q66 6 116 46 Z" fill="#ffc531" stroke="#141414" stroke-width="5"/>
+    <circle cx="48" cy="30" r="3" fill="#141414"/><circle cx="66" cy="24" r="3" fill="#141414"/><circle cx="84" cy="30" r="3" fill="#141414"/>
+    <path d="M14 48 h104 q6 12 -6 14 H20 q-12 -2 -6 -14 Z" fill="#26d0bb" stroke="#141414" stroke-width="5"/>
+    <rect x="20" y="64" width="92" height="16" rx="8" fill="#e0322a" stroke="#141414" stroke-width="5"/>
+    <rect x="16" y="82" width="100" height="22" rx="10" fill="#c0782c" stroke="#141414" stroke-width="5"/>
+    <path d="M24 106 h84 q10 14 -6 16 H30 q-16 -2 -6 -16 Z" fill="#ffc531" stroke="#141414" stroke-width="5"/>
+  </svg>`
 };
 
 const SOCIAL_ICONS = { Instagram: I.ig, Facebook: I.fb, foodpanda: I.bag };
@@ -263,6 +282,11 @@ function foot() {
     <div class="foot__bye">
       <span>© ${new Date().getFullYear()} Love Bites. Made in Punjab.</span>
       <span>No cart, no checkout. Just come and eat.</span>
+    </div>
+    <div class="foot__neon">
+      <span class="foot__neon-w foot__neon-w--a">Love</span>
+      <span class="foot__neon-heart">${I.heart.replace('stroke-width="4"', 'stroke-width="4.5"')}</span>
+      <span class="foot__neon-w foot__neon-w--b">Bites</span>
     </div>
   </div>
 </footer>`;
@@ -442,7 +466,17 @@ const POSTERS = [
     t: 'Eat. Achha khana, achhi zindagi.',
     d: 'Good food, good life. The oldest rule in the shop, printed the way we say it.',
     cta: 'Start with the menu',
-    alt: 'Cream Love Bites poster reading EAT above the Urdu line achha khana achhi zindagi, meaning good food good life' }
+    alt: 'Cream Love Bites poster reading EAT above the Urdu line achha khana achhi zindagi, meaning good food good life' },
+  { img: '/posters/pw-slice.jpg', bg: '#f7e8d0', href: '/menu/#premium-flavor-pizza', kicker: 'The cheese pull',
+    t: 'Cheese pulls are a love language.',
+    d: 'One slice, infinite stretch — every pizza we know how to make, in one place.',
+    cta: 'See the pizzas',
+    alt: 'Screen-printed illustration of a giant pizza slice with a long mozzarella cheese pull, tomato red and teal on cream' },
+  { img: '/posters/pw-burger.jpg', bg: '#e0a52e', href: '/menu/#grilled-chicken-burgers', kicker: 'The grip',
+    t: 'Two hands. Zero shame.',
+    d: 'Stacked, sauced and built to be eaten immediately. The burger board, no cutlery required.',
+    cta: 'Find the burgers',
+    alt: 'Screen-printed illustration of a towering crispy chicken burger with dripping sauce, mustard and teal on cream' }
 ];
 
 const CRAVINGS = [
@@ -558,6 +592,7 @@ function home() {
       </div>
     </div>
     <div class="hero__plate">
+      <span class="floaty hero__food" aria-hidden="true">${I.pizza}</span>
       <figure class="hero__photo" style="margin:0">
         <img src="/img/hero-food.jpg" alt="A hand lifting a cheesy slice from a square-cut Love Bites pizza on a dark tray" width="1400" height="740" fetchpriority="high">
       </figure>
@@ -577,8 +612,8 @@ function home() {
       <p class="act">Act 02 — The Poster Wall</p>
       <h2 class="h-lg" id="wall-h">Our walls<br><span class="outline">talk back</span></h2>
     </div>
-    <p class="wall__lede">Eight prints from the shop. A few of them are below —
-      the rest are hanging on the wall.</p>
+    <p class="wall__lede">${POSTERS.length} prints, one wall. A few of them are below —
+      the rest are hanging on the wall page.</p>
   </div>
 
   <div class="wall__rail" data-rail tabindex="0" role="region" aria-label="Poster wall preview — scroll sideways to explore">
@@ -809,6 +844,8 @@ function menuPage() {
     </div>
     <figure class="mhero__poster">
       <img src="/posters/pw-eat.jpg" alt="Love Bites poster reading EAT above the Urdu line achha khana achhi zindagi, meaning good food, good life" width="760" height="1140" fetchpriority="high" decoding="async">
+      <span class="floaty mhero__food mhero__food--pizza" aria-hidden="true">${I.pizza}</span>
+      <span class="floaty mhero__food mhero__food--burger" aria-hidden="true">${I.burger}</span>
     </figure>
   </div>
 </header>
@@ -847,7 +884,24 @@ ${body}
     </div>
   </div>
 </section>
-</main>` + tail('', null, { cats: catData });
+</main>
+<dialog class="citygate" data-citygate aria-labelledby="citygate-h">
+  <div class="citygate__in">
+    <p class="act">First, the important bit</p>
+    <h2 id="citygate-h">Where are you<br><span class="outline">eating?</span></h2>
+    <p class="citygate__sub">Menus and prices are set city by city. Pick your room — we'll show
+      that room's exact board.</p>
+    <div class="citygate__opts">
+      ${BRANCHES.map((b, i) => `<button class="cityopt" type="button" data-cityopt="${b.slug}"${i === 0 ? ' autofocus' : ''} style="--city-hue:${b.hue}">
+        <span class="cityopt__no">${String(i + 1).padStart(2, '0')}</span>
+        <span class="cityopt__tx"><strong>${b.city}</strong><small>${b.hours}</small></span>
+        <span class="cityopt__go" aria-hidden="true">→</span>
+      </button>`).join('')}
+    </div>
+    <p class="citygate__note">Changed your mind? The city switcher at the top of the menu
+      always works.</p>
+  </div>
+</dialog>` + tail('', null, { cats: catData });
 }
 
 /* ---------- SPOTS INDEX ---------- */
@@ -1044,9 +1098,9 @@ function wallPage() {
     <div class="whero__txt">
       <p class="act">The Wall</p>
       <h1 class="h-xl">Every print<br>we ever<br><span class="outline">hung up</span></h1>
-      <p class="whero__lede">We print what we would actually put on a wall — no stock smiles, no
-        discount starbursts. Eight posters, one visual universe, all of them hanging in a real room
-        somewhere between Chiniot and Faisalabad.</p>
+      <p class="whero__lede">We put on a wall only what we would actually stand behind — no stock
+        smiles, no discount starbursts. ${POSTERS.length} posters, one visual universe, made for the
+        Love Bites rooms between Chiniot and Faisalabad.</p>
     </div>
     <figure class="whero__poster">
       <img src="${feature.img}" alt="${feature.alt}" width="760" height="1140" fetchpriority="high" decoding="async">
@@ -1092,7 +1146,7 @@ function wallPage() {
   <div class="wrap">
     <p class="act">The full collection</p>
     <h2 class="h-lg" id="wgrid-h">The whole wall</h2>
-    <p class="wgrid__lede">Eight prints, hung straight. Tap any one of them to go where it points.</p>
+    <p class="wgrid__lede">${POSTERS.length} prints, hung straight. Tap any one of them to go where it points.</p>
 
     <ul class="wgrid__list">
       ${POSTERS.map((p, i) => `
@@ -1123,7 +1177,7 @@ function wallPage() {
         <p class="act">The print shop</p>
         <h2 class="h-lg" id="wmake-h">Make one<br><span class="outline">for you</span></h2>
       </div>
-      <p class="wmake__lede">Four prints from this wall, redrawn as a tiny machine. Pick a design,
+      <p class="wmake__lede">Six prints from this wall, redrawn as a tiny machine. Pick a design,
         put your words on it, take it home as a picture. Free, like the napkins — and drawn on your
         device, not ours.</p>
     </div>
@@ -1137,6 +1191,8 @@ function wallPage() {
             <button class="chip" type="button" data-mk-style="hotline" aria-pressed="false">Hotline</button>
             <button class="chip" type="button" data-mk-style="crave" aria-pressed="false">Crave</button>
             <button class="chip" type="button" data-mk-style="eat" aria-pressed="false">Eat</button>
+            <button class="chip" type="button" data-mk-style="pizza" aria-pressed="false">Pizza</button>
+            <button class="chip" type="button" data-mk-style="bite" aria-pressed="false">Bite</button>
           </div>
         </div>
         <div class="mk__group">
