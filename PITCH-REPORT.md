@@ -233,3 +233,132 @@ Severity: **Critical** (launch blocker) · **High** · **Medium** · **Low**
 
 *Sections D–L (before → after findings, routes, final QA) are completed at the end of the
 implementation pass — see bottom of this document.*
+---
+
+# D. ACCESSIBILITY FINDINGS — before → after
+
+| Area | Before | After |
+|------|--------|-------|
+| **Focus visibility (2.4.7)** | Ink outline on ink surfaces → invisible in nav, footer, mobile bar, ink bands (contrast 1.0:1) | Context-aware focus: cheese outline on all dark UI (11.65:1), ink retained on light; verified against every band colour (≥3:1) |
+| **Text contrast (1.4.3)** | 6 AA failures: white-on-tomato buttons 4.44, WhatsApp-green buttons 3.03, hero live pill ≈2:1 (on orange), poster kickers 4.09, red links 4.06, hero eyebrow 4.36 | All pass: buttons pure `#fff` on tomato (4.51) / brand lettuce on WA buttons (5.31), live pills get ink chips, kickers lifted with `color-mix` (7.78+), `--tomato-text` for small red text (5.78), hero eyebrow 5.69 |
+| **Menu page IDs (4.1.1)** | 12 duplicate ids (each category × 3 branch panels) — invalid HTML, deep links broke for non-default city | 0 duplicates; default panel owns canonical fragments, other panels jump via `data-cat` + JS |
+| **Heading structure (1.3.1)** | 404 page jumped h1→h3; footer `h3` under page content | Footer headings → `h2` (legal in footer landmark); all 14 pages: single h1, zero level jumps (script-verified) |
+| **Semantics (1.3.1)** | Branch info cards used `<cite>` (citation) as field labels | Proper `<dl><dt>/<dd>` lists, same styling |
+| **Canvas label (4.1.2)** | Static aria-label on poster-maker canvas (stale after style change) | Already updated by `render()` — verified current ("the X print carrying the words Y"); added download-failure feedback instead of silent failure |
+| **Alt text (1.1.1)** | Conflicting/wrong alts across sections (burger ↔ "fire glaze", unverified "chicken tikka") | Every meaningful image describes what is actually visible; decorative images `alt=""`+`aria-hidden` (7 on home); missing-photo state has `role="img"` + honest label |
+| **Motion (2.3.3)** | Already handled (`prefers-reduced-motion` kills animations, marquee dupes removed) | Unchanged — retained as a strength |
+| **Keyboard** | Skip link, focusable rails, arrow-key poster rail, `aria-pressed` chips | Retained; new map placeholder is a real `<button>`; contrast of focus on new components verified |
+| **Zoom** | Not disabled | Still not disabled; touch targets ≥44px on coarse pointers kept |
+
+*Verification: static checks on all 14 routes (ids, alts, dims, headings, inline scripts) + computed WCAG ratios for 17 colour pairs. No browser-based axe run (no headless browser in the audit sandbox) — listed as residual in §K.*
+
+# E. SEO FINDINGS — before → after
+
+| Item | Before | After |
+|------|--------|-------|
+| Canonical | Hard-coded `www.lovebites.pk` (old site) on a vercel.app preview | Self-canonical per deployment (`VERCEL_URL` or default); `SITE_URL=https://www.lovebites.pk` at cutover (README) |
+| Sitemap | 9 URLs, no `lastmod` | 13 URLs + `lastmod` on every entry |
+| Legacy routes | `/about` (old site) → 404 | Permanent 301 → `/story/` (both slash forms) |
+| Twitter/OG | Card + one shared image, no twitter:title/description | Full twitter:title/description/image + og:image dims/alt, per-page images (branch photos on branch pages) |
+| JSON-LD | `priceRange: 'Rs 500–3,000'` (invented); flat hero image | Computed `Rs 250–2,600` from menu data; branch-specific `image[]`; 22 blocks parse clean |
+| Ratings in schema | Stale (850/66) | Live-verified (1000/42) with on-page "checked September 2026" provenance |
+| Legal pages | None | 4 indexable, internally linked pages (footer sitewide) |
+| 404 | 404 status ✓ (kept) + thin | 404 status kept; +2 useful CTAs, heading fix |
+| Titles/descriptions | Good, unique per route | Kept; new pages follow the same pattern; `apple-touch-icon` + second font preload added |
+| Local SEO | Per-branch pages, Restaurant schema, NAP | Kept + hours/ratings provenance + phone/WhatsApp consistent across footer, cards, contact |
+
+*Keyword stuffing, fake "best in town" claims: none found — retained as-is.*
+
+# F. PERFORMANCE FINDINGS — before → after
+
+| Item | Before | After |
+|------|--------|-------|
+| Google Maps iframes | 3 branch pages each pulled a live Google embed eagerly (~1–2 MB, third-party JS/cookies) | Click-to-load: **zero** Google requests until the visitor taps "Load the map"; "Open in Google Maps" links still work without JS |
+| Dead assets | 6 unreferenced images, ~433 KB (`longshot-1..4`, `p-solo`, `p-squad`) shipped every deploy | Removed (kept `p-couch`/`p-picnic`, now used by the craving machine). `public/` 8.3 MB → 7.9 MB |
+| CLS risk | 3 img types without intrinsic dimensions | All `<img>` carry width/height (script-verified) |
+| Fonts | 1 font preloaded, body font not | Both woff2 preloaded, `font-display: swap` retained |
+| Inline JS | `LB_CATS` executable inline script | Inert JSON `#lb-data` (also enables strict CSP); no behavioural change |
+| Images | Already: lazy below fold, `fetchpriority=high` on hero, sized assets | Retained; original compression kept (largest ~292 KB; total image budget acceptable for a photo-led restaurant site) |
+| JS/CSS | ~5 KB app.js, 65 KB CSS, zero dependencies, no frameworks | Same zero-dependency architecture (app.js 17.7 KB source incl. comments; map loader + data readers added) |
+| Banner risk | — | Placeholder CSS only (repeating gradient) until click — no layout shift when the iframe swaps in (same min-height) |
+
+# G. SECURITY FINDINGS — before → after
+
+| Item | Before | After |
+|------|--------|-------|
+| Secrets/keys | None found ✓ | None ✓ (re-verified) |
+| XSS sinks | `innerHTML` fed only build-time constants ✓ | Craving `innerHTML` now fed from build-time JSON in `#lb-data` (same trust boundary; `<` escaped in the block) |
+| CSP | None | `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'` — feasible because inline executable scripts were removed |
+| Other headers | Cache only | + `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera/mic/geo/payment/usb off), `X-Frame-Options: SAMEORIGIN`, `Cross-Origin-Opener-Policy` |
+| Third-party scripts | Google Maps (unconditional) | Maps only on explicit click; no analytics/CDNs/pixels anywhere |
+| `target=_blank` | Already `rel="noopener"` ✓ | ✓ (checked across all pages) |
+| Client storage | `localStorage['lb-branch']` (functional) | Unchanged, disclosed in privacy+cookies pages |
+| HSTS | Host-level (vercel.app) | Set HSTS on custom domain after cutover — see §K |
+
+# H. UX IMPROVEMENTS — what changed and why
+
+1. **Dish honesty end-to-end** — heroes now show the real dish photo (Royal Crust/Loaded Fries/Squared Seasons); dishes without a real photo get an on-brand "Photo coming soon" tile instead of a wrong photo; craving machine shows exact-dish photos or clearly-labelled Love Bites prints with a "not a photograph" badge. Trust is the whole point of a food site.
+2. **Legal layer** — four policy pages in plain brand voice, footer "The small print" column sitewide, honest cookie disclosure that explains *why there is no banner*.
+3. **Maps on request** — a designed "Load the map" card that doubles as privacy disclosure and perf win; address/phone/directions remain fully functional without it.
+4. **Mobile bar honesty** — non-branch quick action renamed "WhatsApp"→"Order" (it opens the branch picker, not WhatsApp); on branch pages it stays WhatsApp with an aria-label naming the city.
+5. **Menu reliability** — city order normalised (section numbers, poster wall and jump bar now agree), deep links work from any city, noscript fallback line, price note date is a real data date.
+6. **Consistent narrative** — Acts 01–06 flow across home and /spots/ (review wall is Act 05, spots is Act 06).
+7. **CTA wording** — "Get one for you" → "Make your own print"; "This spot" → "See this spot".
+8. **404** — added Find a branch + Contact CTAs (Home/Menu kept).
+9. **Status resilience** — pills fall back to "Open daily from 12 p.m." if data never loads; no eternal "Checking…".
+10. **Continued, unchanged strengths**: drag rails, print-drop motion, craving machine, poster maker, review marquee, sticker easter egg, "no cart" personality.
+
+# I. ROUTES ADDED
+
+| Route | Why |
+|-------|-----|
+| `/privacy/` | Data-collection disclosure (required by best practice; future-proofing for the pending PDPA) |
+| `/cookies/` | Honest storage/third-party inventory + no-banner rationale |
+| `/terms/` | Site terms, price/review accuracy, consumer-law acknowledgement |
+| `/refund-policy/` | Order complaints (dine-in/takeaway/phone/foodpanda), client slots marked |
+| `301 /about` → `/story/` | Legacy route of the old official site |
+
+Existing routes (9) all kept — no removals, no regressions (650/650 local references resolve).
+
+# J. CLIENT-CONFIRMATION LIST
+*(Completed list is in §B/§C top of this document — 20 items covering identity, branch phones/hours, menus, ratings re-verification, photo licensing, refund rules, domain cutover, legal review. The four legal pages also carry 11 inline `[CLIENT TO CONFIRM]` markers exactly where facts are owed.)*
+
+# K. REMAINING RISKS
+
+| Risk | Severity | Why it can't be closed without the client |
+|------|----------|-------------------------------------------|
+| Faisalabad phone conflict (0315-2821112 vs foodpanda's 0304-2000870) | High | Only the business knows which number is the shop line |
+| Google Chiniot rating/count can't be verified from this sandbox | Medium | Needs one look at the live Google listing (aggregators lag) |
+| Review star counts (partial verification of stars; wording verified) | Medium | Screenshots from the owner's listing dashboards settle it |
+| AI stand-in food photos on real dishes | Medium | Replaced only by real photography — an editorial decision + shoot |
+| Policy pages need a Pakistani lawyer | High | We are not lawyers; pages say so |
+| Entity name, refund rules, retention periods | High | Business facts we refuse to invent |
+| HSTS on custom domain | Low | Enables only after domain serves HTTPS |
+| No headless browser in sandbox | Low | Static/contrast/structure QA done; recommend one manual device pass + Lighthouse run on staging |
+| Google may ignore `aggregateRating` markup | Low | Third-party ratings are attributed on-page either way (guideline-safe posture) |
+| `vercel.json` headers apply only on Vercel | Low | Deploy target is Vercel ✓ |
+
+# L. FINAL QA
+
+**Automated (all green on the built output):**
+- ✅ 14 routes render; unknown route returns HTTP 404
+- ✅ 650 local `href/src` references: **0 broken files, 0 broken anchors**
+- ✅ 0 duplicate ids · 0 images missing `alt` · 0 images missing `width/height` · 0 heading-level jumps · exactly one `h1` per page
+- ✅ 0 inline executable `<script>` blocks (CSP `script-src 'self'` viable)
+- ✅ 22/22 JSON-LD blocks parse
+- ✅ 17/17 WCAG contrast pairs meet their threshold (4.5:1 text, 3:1 indicators)
+- ✅ `node --check` clean on `build.mjs`, `app.js`, `make.js`; `vercel.json` parses; CSS braces/parens balanced
+- ✅ Content checks: legal links in footer, floor-rounded review copy, Act numbering, noscript note, menu as-of date, ratings (4.1·678 / 4.7·1,000+ / 4.7·42), computed priceRange
+- ✅ Local preview server exercised every route (200s, map placeholder, correct hero/craving imagery)
+
+**Manual/interactive (documented for staging):** keyboard tab-order sweep on a device, `wa.me`/tel/foodpanda outbound checks (URLs verified live during research), poster-maker download on iOS/Android, Lighthouse run, real-phone scroll pass at 360/390/768/1024/1440 px.
+
+**Regression guarantee:** no existing route, CTA, form (none exist), external link or feature was removed; the commit history records exactly what changed (`de06f4e`).
+
+---
+
+## Final standard check
+
+> "Same Love Bites identity — dramatically better execution."
+
+The poster-wall personality, the five-ink riso palette, Archivo display type, ticket cards, the "no cart, we believe in people" voice and the Act structure are untouched. What changed is everything a restaurant client's lawyer, customers, Google and an accessibility reviewer would look at: **the site now tells the truth precisely, asks for nothing, guards itself, and reads as finished.**
