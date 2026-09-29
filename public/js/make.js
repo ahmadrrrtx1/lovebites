@@ -222,7 +222,16 @@
   });
   function save (type, ext) {
     canvas.toBlob(function (b) {
-      if (!b) return;
+      var cap = stage && stage.querySelector('figcaption');
+      var capText = cap ? cap.textContent : '';
+      if (!b) {
+        // Older/private browsers can refuse canvas export — say so instead of failing silently.
+        if (cap) {
+          cap.textContent = 'Download blocked by the browser — screenshot the frame instead.';
+          setTimeout(function () { cap.textContent = capText; }, 5000);
+        }
+        return;
+      }
       var a = document.createElement('a');
       a.href = URL.createObjectURL(b);
       a.download = 'love-bites-' + style + '-poster.' + ext;

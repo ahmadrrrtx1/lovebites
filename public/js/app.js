@@ -14,6 +14,11 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* Build-time data (craving machine, menu categories) arrives as inert JSON
+    in #lb-data — never as an executable inline script. */
+  let DATA = {};
+  try { DATA = JSON.parse($('#lb-data').textContent) || {}; } catch (e) { DATA = {}; }
+
   /* ---------- 1. LIVE OPEN / CLOSED ------------------------- */
   // Hours are 12:00 → 01:00 / 02:00 next day, so "close" is stored
   // as 25 / 26 and we test the clock in PKT (UTC+5) regardless of
@@ -72,7 +77,18 @@
       any.classList.toggle('live--open', openOnes.length > 0);
       any.classList.toggle('live--shut', openOnes.length === 0);
     }
-  }).catch(() => { });
+  }).catch(() => {
+    // Static fallback so the page never sits on "Checking…" forever.
+    $$('[data-live-txt]').forEach(el => { el.textContent = 'Open daily from 12 p.m.'; });
+    $$('[data-live-branch-pill]').forEach(el => {
+      const t = el.querySelector('span:last-child');
+      if (t) t.textContent = 'Open daily from 12 p.m.';
+    });
+    $$('[data-live-branch]').forEach(el => {
+      el.textContent = '12 p.m. – 1 a.m.';
+      el.style.background = 'var(--ink)'; el.style.color = '#fff';
+    });
+  });
 
   const jumpTo = id => {
     const visible = $$('[data-branch-panel]').find(p => !p.hidden) || document;
@@ -87,8 +103,8 @@
   // window.LB_CATS, which the build emits straight out of data/menus.json.
   const wall = $('[data-catwall]');
   const paintWall = slug => {
-    if (!wall || !window.LB_CATS) return;
-    const cats = window.LB_CATS[slug] || [];
+    if (!wall || !DATA.cats) return;
+    const cats = DATA.cats[slug] || [];
     wall.innerHTML = cats.map((c, i) => `
       <button type="button" class="cp" data-jump="${c.id}"
         style="--cp-bg:${c.bg};--cp-fg:${c.fg}">
@@ -147,23 +163,24 @@
   }
 
   /* ---------- 4. CRAVING MACHINE ---------------------------- */
-  const CRAVE = {
-    squad: { v: 'Squared Seasons + Loaded Fries', w: 'Every flavour on one square pizza so nobody argues. Order the platter too — you will fight over it anyway.', p: ['Squared Seasons from Rs 1,900', 'Loaded Fries from Rs 700', 'Hot Wings ×12'], i: '/img/hero-food.jpg' },
-    solo: { v: 'A Long Shot + Masala Fries', w: 'One long slice, one hand free for your phone. Rs 600 and you are out in twenty minutes.', p: ['Queen\'s Cut Long Shot Rs 600 flat', 'Masala Fries from Rs 290'], i: '/img/longshot-box.jpg' },
-    late: { v: 'Mega Bite + Cheesy Fries', w: 'Faisalabad runs till 2 a.m. This is the order that fixes the night. No notes.', p: ['Mega Bite from Rs 590', 'Cheesy Fries from Rs 450', 'Faisalabad only'], i: '/img/detail-burger.jpg' },
-    messy: { v: 'Fire Glaze Chicken', w: 'The one reviewers keep naming without being asked. Sticky, sweet-hot, wash-your-hands-after food.', p: ['Fire Glaze Chicken Rs 850 flat', 'Extra dip Rs 70'], i: '/img/detail-burger.jpg' },
-    comfort: { v: 'Oven Baked Pasta', w: 'Baked, blistered on top, eaten with a spoon. Sargodha has been quietly perfecting this one.', p: ['Oven Baked Pasta from Rs 650', 'Extra bread Rs 40'], i: '/img/detail-fries.jpg' },
-    first: { v: 'Royal Crust Pizza', w: 'The dish that built the Chiniot queue. If you only eat one thing, eat this.', p: ['Royal Crust from Rs 1,250', 'Mexican Wrap from Rs 590'], i: '/img/hero-food.jpg' }
-  };
+  // Single source of truth: the build emits CRAVINGS into #lb-data. Each entry
+  // points at a photo of the dish it recommends — or, where no photo exists, at
+  // an official Love Bites print flagged `illus` and labelled as such on screen.
+  const CRAVE = Object.fromEntries((DATA.crave || []).map(c => [c.id, c]));
   const chips = $$('[data-crave]');
-  if (chips.length) {
-    const out = { v: $('[data-crave-verdict]'), w: $('[data-crave-why]'), p: $('[data-crave-picks]'), i: $('[data-crave-img]') };
+  if (chips.length && Object.keys(CRAVE).length) {
+    const out = {
+      v: $('[data-crave-verdict]'), w: $('[data-crave-why]'),
+      p: $('[data-crave-picks]'), i: $('[data-crave-img]'),
+      n: $('[data-crave-note]')
+    };
     chips.forEach(c => c.addEventListener('click', () => {
       const d = CRAVE[c.dataset.crave]; if (!d) return;
       chips.forEach(x => x.setAttribute('aria-pressed', String(x === c)));
-      out.v.textContent = d.v; out.w.textContent = d.w;
-      out.p.innerHTML = d.p.map(t => `<span class="tag">${t}</span>`).join('');
-      out.i.src = d.i;
+      out.v.textContent = d.verdict; out.w.textContent = d.why;
+      out.p.innerHTML = d.picks.map(t => `<span class="tag">${t}</span>`).join('');
+      out.i.src = d.img; out.i.alt = d.imgAlt || '';
+      if (out.n) out.n.hidden = !d.illus;
       if (!reduced) {
         const card = out.v.closest('.crave__out');
         card.animate([{ transform: 'translateY(6px) rotate(-.3deg)', opacity: .55 }, { transform: 'none', opacity: 1 }],
@@ -338,5 +355,51 @@
         setTimeout(function(){ mq.classList.remove('is-drag'); }, 0);
       });
     });
+  });
+})();
+
+/* ---- lazy maps: nothing loads from Google until the visitor asks ---------- */
+(function lazyMaps(){
+  document.querySelectorAll('[data-map]').forEach(function (box) {
+    var btn = box.querySelector('[data-map-load]');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var src = box.getAttribute('data-map-src');
+      var title = box.getAttribute('data-map-title') || 'Map showing Love Bites';
+      if (!src) return;
+      // Replace the placeholder with the real embed in place.
+      var frame = document.createElement('iframe');
+      frame.className = 'mapframe';
+      frame.src = src;
+      frame.title = title;
+      frame.setAttribute('loading', 'lazy');
+      frame.referrerPolicy = 'no-referrer-when-downgrade';
+      frame.allowFullscreen = true;
+      box.replaceWith(frame);
+    });
+  });
+})();
+
+/* ---- in-page anchors that cross pages (/#crave from /wall/) --------------- */
+(function crossPageAnchors(){
+  if (!location.hash || location.pathname !== '/') return;
+  var target = document.getElementById(location.hash.slice(1));
+  if (target) target.scrollIntoView({ behavior: 'auto' });
+})();
+
+/* ---- menu deep links to a category (#fried-burgers from a poster) --------- */
+(function categoryDeepLinks(){
+  if (!location.hash) return;
+  var id = location.hash.slice(1);
+  var visible = Array.prototype.find.call(
+    document.querySelectorAll('[data-branch-panel]'),
+    function (p) { return !p.hidden; });
+  if (!visible) return;
+  var sec = visible.querySelector('[data-cat="' + id.replace(/"/g, '') + '"]');
+  if (!sec) return;
+  // Let layout settle (sticky bars measure after fonts load) then jump.
+  requestAnimationFrame(function () {
+    var y = sec.getBoundingClientRect().top + window.scrollY - 150;
+    window.scrollTo({ top: y, behavior: 'auto' });
   });
 })();

@@ -9,6 +9,19 @@ import path from 'node:path';
 const OUT = 'site';
 const menus = JSON.parse(fs.readFileSync('data/menus.json', 'utf8')); // [cht, sgd, fsd]
 
+// Each branch menu lists the same 12 sections but not in the same order. The
+// jump bar, the poster wall and the section numbers all read from one order —
+// the Chiniot menu's — so normalise every branch to it at load time.
+{
+  const order = menus[0].map(c => c.id);
+  menus.forEach(branch => branch.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id)));
+}
+
+/* Menu prices / branch facts were last checked against the printed menus and
+   public listings on this date. It is a constant on purpose: rendering the
+   build date would silently claim data was re-verified every deploy. */
+const DATA_ASOF = 'September 2026';
+
 /* ---------- VERIFIED BUSINESS DATA (see research/EVIDENCE.md) ---------- */
 const BRANCHES = [
   {
@@ -18,7 +31,7 @@ const BRANCHES = [
     street: 'Sargodha Road, Chiniot, Punjab, Pakistan',
     phone: '+92 47 6331462', tel: '+92476331462', wa: '923150331462',
     hours: '12:00 p.m. – 1:00 a.m.', open: 12, close: 25,
-    rating: 4.1, reviews: 678, ratingSrc: 'Google',
+    rating: 4.1, reviews: 678, reviewsLabel: '678', ratingSrc: 'Google',
     art: '/brand/cht.png', hue: 'var(--mustard)',
     photo: '/branch/cht-hero.jpg',
     photoAlt: 'The Love Bites Chiniot shopfront at night, lit sign above the awning on Sargodha Road',
@@ -48,7 +61,7 @@ const BRANCHES = [
     street: 'Railway Road, Sargodha, Punjab, Pakistan',
     phone: '+92 48 3768182', tel: '+92483768182', wa: '923260768182',
     hours: '12:00 p.m. – 1:00 a.m.', open: 12, close: 25,
-    rating: 4.8, reviews: 850, ratingSrc: 'foodpanda',
+    rating: 4.7, reviews: 1000, reviewsLabel: '1,000+', ratingSrc: 'foodpanda',
     art: '/brand/sgd.png', hue: 'var(--cyan)',
     photo: '/branch/sgd-hero.jpg',
     photoAlt: 'Love Bites Sargodha on Railway Road at night, the words Food Never Breaks Your Heart above the sign',
@@ -78,7 +91,7 @@ const BRANCHES = [
     street: 'Green Avenue, Canal Road, Faisalabad, Punjab, Pakistan',
     phone: '+92 315 2821112', tel: '+923152821112', wa: '923152821112',
     hours: '12:00 p.m. – 2:00 a.m.', open: 12, close: 26,
-    rating: 4.5, reviews: 66, ratingSrc: 'foodpanda',
+    rating: 4.7, reviews: 42, reviewsLabel: '42', ratingSrc: 'foodpanda',
     art: '/brand/fsd.png', hue: 'var(--lettuce)',
     photo: '/branch/fsd-hero.jpg',
     photoAlt: 'The Love Bites Faisalabad flagship shopfront on Green Avenue with a large illuminated sign',
@@ -103,7 +116,11 @@ const BRANCHES = [
   }
 ];
 
-const SITE = process.env.SITE_URL || 'https://www.lovebites.pk';
+/* Canonical origin. Each deployment should default to self-canonical (its own
+   URL) so metadata never points at a different site than the one being served.
+   At domain cutover, set SITE_URL=https://www.lovebites.pk in Vercel. */
+const SITE = process.env.SITE_URL
+  || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://lovebites-nine.vercel.app');
 const EMAIL = 'lovebites.pakistan@gmail.com';
 
 /* ---------- VERIFIED PROFILES (checked Aug 2026) ------------------------
@@ -142,13 +159,13 @@ const SOCIAL_ICONS = { Instagram: I.ig, Facebook: I.fb, foodpanda: I.bag };
 // the query so Google resolves the actual business card, while @lat,lng pins the
 // map on the right spot even if the name lookup drifts.
 const mapUrl = b => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.mapQ)}`;
-const dirUrl = b => `https://www.google.com/maps/dir/?api=1&destination=${b.lat}%2C${b.lng}&destination_place_id=`.replace(/&destination_place_id=$/, '');
+const dirUrl = b => `https://www.google.com/maps/dir/?api=1&destination=${b.lat}%2C${b.lng}`;
 const embedUrl = b => `https://www.google.com/maps?q=${b.lat},${b.lng}&z=16&output=embed`;
 
 const nf = n => Number(n).toLocaleString('en-PK');
 
 /* ---------- shared chrome ---------- */
-function head({ title, desc, url, schema = [], css = '' }) {
+function head({ title, desc, url, schema = [], css = '', ogImage = '/img/hero-food.jpg', ogAlt = 'A hand lifting a cheesy slice from a square-cut Love Bites pizza' }) {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -163,11 +180,19 @@ function head({ title, desc, url, schema = [], css = '' }) {
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${desc}">
 <meta property="og:url" content="${SITE}${url}">
-<meta property="og:image" content="${SITE}/img/hero-food.jpg">
+<meta property="og:image" content="${SITE}${ogImage}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${ogAlt}">
 <meta property="og:locale" content="en_PK">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${desc}">
+<meta name="twitter:image" content="${SITE}${ogImage}">
 <link rel="icon" href="/brand/heart.png">
+<link rel="apple-touch-icon" href="/brand/heart.png">
 <link rel="preload" as="font" type="font/woff2" href="/fonts/archivo-black.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/archivo-var.woff2" crossorigin>
 <link rel="stylesheet" href="/css/app.css">
 ${css ? `<style>${css}</style>` : ''}
 ${schema.map(s => `<script type="application/ld+json">${JSON.stringify(s)}</script>`).join('\n')}
@@ -191,11 +216,11 @@ function nav(active) {
 
 function mbar(b) {
   // On a branch page the quick-action WhatsApp must reach THAT branch. Anywhere
-  // else there is no single right number, so the bar points at /spots/ and lets
-  // the reader pick a city rather than silently messaging Faisalabad.
+  // else there is no single right number, so the bar goes to the branch picker
+  // and says "Order" — labelling it "WhatsApp" would promise an app it does not open.
   const wa = b
-    ? `<a class="is-wa" href="https://wa.me/${b.wa}"><span aria-hidden="true">${I.wa}</span>WhatsApp</a>`
-    : `<a class="is-wa" href="/spots/#now"><span aria-hidden="true">${I.wa}</span>WhatsApp</a>`;
+    ? `<a class="is-wa" href="https://wa.me/${b.wa}" aria-label="WhatsApp Love Bites ${b.city}"><span aria-hidden="true">${I.wa}</span>WhatsApp</a>`
+    : `<a class="is-wa" href="/spots/#now" aria-label="Order — pick your branch for WhatsApp"><span aria-hidden="true">${I.wa}</span>Order</a>`;
   return `<nav class="mbar" aria-label="Quick actions">
   <a href="/"><span aria-hidden="true">${I.home}</span>Home</a>
   <a href="/menu/"><span aria-hidden="true">${I.menu}</span>Menu</a>
@@ -213,13 +238,13 @@ function foot() {
         <p style="font-weight:700;max-width:30ch;opacity:.85;margin:.2rem 0 0">
           Pizza Co. since 2018. Chiniot → Sargodha → Faisalabad.<br>Best eaten here, at the table, with people you like.</p>
       </div>
-      <div><h3>Go</h3>
+      <div><h2>Go</h2>
         <a href="/menu/">Menu &amp; prices</a><a href="/spots/">All three spots</a>
         <a href="/story/">Our story</a><a href="/wall/">The poster wall</a>
         <a href="/contact/">Contact &amp; profiles</a><a href="/spots/#now">What's open now</a></div>
-      <div><h3>Spots</h3>
+      <div><h2>Spots</h2>
         ${BRANCHES.map(b => `<a href="/spots/${b.slug}/">${b.city} — ${b.hours}</a>`).join('')}</div>
-      <div><h3>Company</h3>
+      <div><h2>Company</h2>
         ${SOCIALS.map(s => `<a href="${s.url}" rel="noopener">${s.name}</a>`).join('')}
         <a href="tel:${BRANCHES[0].tel}">${BRANCHES[0].phone}</a>
         <a href="mailto:${EMAIL}">${EMAIL}</a>
@@ -227,6 +252,13 @@ function foot() {
           Love Bites Office, Sargodha Road, Chiniot</span>
         <span style="display:block;padding:.24rem 0;font-weight:700;font-size:.92rem;opacity:.6">
           Office: Mon–Thu, 11 a.m.–6 p.m.</span></div>
+      <div><h2>The small print</h2>
+        <a href="/privacy/">Privacy policy</a>
+        <a href="/cookies/">Cookie policy</a>
+        <a href="/terms/">Terms &amp; conditions</a>
+        <a href="/refund-policy/">Refund &amp; cancellation</a>
+        <span style="display:block;padding:.24rem 0;font-weight:700;font-size:.85rem;opacity:.6">
+          Menu prices last checked ${DATA_ASOF}. Ratings quoted from public listings.</span></div>
     </div>
     <div class="foot__bye">
       <span>© ${new Date().getFullYear()} Love Bites. Made in Punjab.</span>
@@ -236,18 +268,33 @@ function foot() {
 </footer>`;
 }
 
-const tail = (js = '', b = null) => `${mbar(b)}${foot()}<script src="/js/app.js" defer></script>${js ? (js.startsWith('<script') ? js : `<script>${js}</script>`) : ''}</body></html>`;
+/* Data the front end needs is emitted as an inert JSON block (never an
+   executable inline script), so the CSP can stay `script-src 'self'`. */
+const jsonBlock = data =>
+  `<script type="application/json" id="lb-data">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
+
+const tail = (js = '', b = null, data = null) => `${mbar(b)}${foot()}${data ? jsonBlock(data) : ''}<script src="/js/app.js" defer></script>${js ? (js.startsWith('<script') ? js : `<script>${js}</script>`) : ''}</body></html>`;
 
 /* ---------- structured data ---------- */
+// Price range for schema.org is derived from the real menu, never hand-typed.
+// Extras (dips, bread) are excluded — priceRange describes the food a guest
+// orders, so the range runs from the cheapest dish to the most expensive one.
+const FOOD_RANGE = (() => {
+  const ps = menus.flat().flatMap(c => c.id === 'extras' ? [] : c.items)
+    .flatMap(i => i.variants.map(v => Number(v.price)).filter(Boolean));
+  return { min: Math.min(...ps), max: Math.max(...ps) };
+})();
+const priceRangeLabel = `Rs ${nf(FOOD_RANGE.min)}–${nf(FOOD_RANGE.max)}`;
+
 const bizSchema = b => ({
   geo: { '@type': 'GeoCoordinates', latitude: b.lat, longitude: b.lng },
   hasMap: mapUrl(b),
   '@context': 'https://schema.org', '@type': 'Restaurant',
   '@id': `${SITE}/spots/${b.slug}/#restaurant`,
   name: `Love Bites — ${b.city}`, url: `${SITE}/spots/${b.slug}/`,
-  image: `${SITE}/img/hero-food.jpg`, telephone: b.phone,
+  image: [`${SITE}${b.photo}`, `${SITE}/img/hero-food.jpg`], telephone: b.phone,
   servesCuisine: ['Pizza', 'Burgers', 'Fast Food', 'Pakistani'],
-  priceRange: 'Rs 500–3,000', currenciesAccepted: 'PKR',
+  priceRange: priceRangeLabel, currenciesAccepted: 'PKR',
   address: { '@type': 'PostalAddress', streetAddress: b.street.split(',')[0], addressLocality: b.city, addressRegion: 'Punjab', addressCountry: 'PK' },
   openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '12:00', closes: b.close === 26 ? '02:00' : '01:00' }],
   aggregateRating: { '@type': 'AggregateRating', ratingValue: b.rating, reviewCount: b.reviews },
@@ -386,7 +433,7 @@ const POSTERS = [
     d: 'Green Avenue, off Canal Road. The biggest floor we have ever built.',
     cta: 'See the flagship',
     alt: 'Orange Love Bites poster reading Faisalabad Flagship with line art of the canal and the clock tower and a 2026 stamp' },
-  { img: '/posters/pw-craving.jpg', bg: '#f7e8d0', href: '#crave', kicker: 'The machine',
+  { img: '/posters/pw-craving.jpg', bg: '#f7e8d0', href: '/#crave', kicker: 'The machine',
     t: 'Pick a craving. We&rsquo;ll handle the rest.',
     d: 'Tell us the mood in one tap and we will tell you what to order.',
     cta: 'Tell us the mood',
@@ -399,12 +446,12 @@ const POSTERS = [
 ];
 
 const CRAVINGS = [
-  { id: 'squad', label: 'Rolling deep', verdict: 'Squared Seasons + Loaded Fries', why: 'Every flavour on one square pizza so nobody argues. Order the platter too — you will fight over it anyway.', picks: ['Squared Seasons from Rs 1,900', 'Loaded Fries from Rs 700', 'Hot Wings ×12'], img: '/img/hero-food.jpg' },
-  { id: 'solo', label: 'Just me', verdict: 'A Long Shot + Masala Fries', why: 'One long slice, one hand free for your phone. Rs 600 and you are out in twenty minutes.', picks: ['Queen\'s Cut Long Shot Rs 600 flat', 'Masala Fries from Rs 290'], img: '/img/longshot-box.jpg' },
-  { id: 'late', label: 'It\'s 1 a.m.', verdict: 'Mega Bite + Cheesy Fries', why: 'Faisalabad runs till 2 a.m. This is the order that fixes the night. No notes.', picks: ['Mega Bite from Rs 590', 'Cheesy Fries from Rs 450', 'Faisalabad only'], img: '/img/detail-burger.jpg' },
-  { id: 'messy', label: 'Feeling messy', verdict: 'Fire Glaze Chicken', why: 'The one reviewers keep naming without being asked. Sticky, sweet-hot, wash-your-hands-after food.', picks: ['Fire Glaze Chicken Rs 850 flat', 'Extra dip Rs 70'], img: '/img/detail-burger.jpg' },
-  { id: 'comfort', label: 'Need comfort', verdict: 'Oven Baked Pasta', why: 'Baked, blistered on top, eaten with a spoon. Sargodha has been quietly perfecting this one.', picks: ['Oven Baked Pasta from Rs 650', 'Extra bread Rs 40'], img: '/img/detail-fries.jpg' },
-  { id: 'first', label: 'First time here', verdict: 'Royal Crust Pizza', why: 'The dish that built the Chiniot queue. If you only eat one thing, eat this.', picks: ['Royal Crust from Rs 1,250', 'Mexican Wrap from Rs 590'], img: '/img/hero-food.jpg' }
+  { id: 'squad', label: 'Rolling deep', verdict: 'Squared Seasons + Loaded Fries', why: 'Every flavour on one square pizza so nobody argues. Order the platter too — you will fight over it anyway.', picks: ['Squared Seasons from Rs 1,900', 'Loaded Fries from Rs 700', 'Hot Wings ×12'], img: '/food/squared.jpg', imgAlt: 'A square-cut Squared Seasons pizza on a board, different flavours in each quarter' },
+  { id: 'solo', label: 'Just me', verdict: 'A Long Shot + Masala Fries', why: 'One long slice, one hand free for your phone. Rs 600 and you are out in twenty minutes.', picks: ["Queen's Cut Long Shot Rs 600 flat", 'Masala Fries from Rs 290'], img: '/img/longshot-box.jpg', imgAlt: 'A Long Shots pizza in its box, drizzled with sauce around a dip pot' },
+  { id: 'late', label: "It's 1 a.m.", verdict: 'Mega Bite + Cheesy Fries', why: 'Faisalabad runs till 2 a.m. This is the order that fixes the night. No notes.', picks: ['Mega Bite from Rs 590', 'Cheesy Fries from Rs 450', 'Faisalabad only'], img: '/img/detail-burger.jpg', imgAlt: 'Hands squeezing a loaded burger, sauce and cheese dripping' },
+  { id: 'messy', label: 'Feeling messy', verdict: 'Fire Glaze Chicken', why: 'The one reviewers keep naming without being asked. Sticky, sweet-hot, wash-your-hands-after food.', picks: ['Fire Glaze Chicken Rs 850 flat', 'Extra dip Rs 70'], img: '/posters/p-picnic.jpg', imgAlt: 'Love Bites print: line-drawn friends eating pizza together at a picnic', illus: true },
+  { id: 'comfort', label: 'Need comfort', verdict: 'Oven Baked Pasta', why: 'Baked, blistered on top, eaten with a spoon. Sargodha has been quietly perfecting this one.', picks: ['Oven Baked Pasta from Rs 650', 'Extra bread Rs 40'], img: '/posters/p-couch.jpg', imgAlt: 'Love Bites print: line-drawn friends sharing pizza on a couch', illus: true },
+  { id: 'first', label: 'First time here', verdict: 'Royal Crust Pizza', why: 'The dish that built the Chiniot queue. If you only eat one thing, eat this.', picks: ['Royal Crust from Rs 1,250', 'Mexican Wrap from Rs 590'], img: '/food/royal-crust.jpg', imgAlt: 'A Royal Crust pizza with a stuffed cheese rim, a slice lifted on a long cheese pull' }
 ];
 
 
@@ -436,6 +483,9 @@ function reviewStrip() {
   const isG = x => /Google/i.test(x.q.a);
   const rows = [all.filter(isG), all.filter(x => !isG(x))];
   const total = BRANCHES.reduce((a, b) => a + b.reviews, 0);
+  // Some sources publish floors ("1,000+"), so round the sum down to a number
+  // we can honestly put the word "over" in front of.
+  const totalFloor = Math.floor(total / 100) * 100;
 
   // A marquee needs enough cards to cover the viewport twice over, otherwise a
   // short row leaves a visible gap as it wraps.
@@ -456,9 +506,9 @@ function reviewStrip() {
   return `
 <section class="band band--ink lovewall" aria-labelledby="lw-h">
   <div class="wrap lovewall__head">
-    <p class="act act--c">The word on the street</p>
+    <p class="act act--c">Act 05 — The word on the street</p>
     <h2 class="h-lg" id="lw-h">Straight from the table</h2>
-    <p class="lovewall__lede">${nf(total)} public reviews across three cities.
+    <p class="lovewall__lede">Over ${nf(totalFloor)} public reviews across three cities.
       Slow it down to read. We did not write these.</p>
   </div>
 
@@ -509,7 +559,7 @@ function home() {
     </div>
     <div class="hero__plate">
       <figure class="hero__photo" style="margin:0">
-        <img src="/img/hero-food.jpg" alt="A hand lifting a slice of square-cut chicken tikka pizza with a long cheese pull" width="1400" height="740" fetchpriority="high">
+        <img src="/img/hero-food.jpg" alt="A hand lifting a cheesy slice from a square-cut Love Bites pizza on a dark tray" width="1400" height="740" fetchpriority="high">
       </figure>
     </div>
   </div>
@@ -552,7 +602,7 @@ function home() {
 
   <div class="wrap wall__foot">
     <div class="wall__prog" aria-hidden="true"><span class="wall__bar" data-rail-bar></span></div>
-    <a class="btn btn--cheese" href="/wall/#make">Get one for you</a>
+    <a class="btn btn--cheese" href="/wall/#make">Make your own print</a>
   </div>
 </section>
 
@@ -572,7 +622,7 @@ function home() {
         <div class="crave__picks" data-crave-picks>${CRAVINGS[0].picks.map(p => `<span class="tag">${p}</span>`).join('')}</div>
         <div style="margin-top:.9rem"><a class="btn btn--ink btn--sm" href="/menu/">Find it on the menu</a></div>
       </div>
-      <div class="crave__img"><img data-crave-img src="${CRAVINGS[0].img}" alt="" width="700" height="560" loading="lazy"></div>
+      <div class="crave__img"><img data-crave-img src="${CRAVINGS[0].img}" alt="${CRAVINGS[0].imgAlt}" width="700" height="560" loading="lazy"><span class="crave__note" data-crave-note hidden>Love Bites print — not a photograph</span></div>
     </div>
   </div>
 </section>
@@ -583,19 +633,20 @@ function home() {
     <h2 class="h-md">Four things people<br>actually name out loud</h2>
   </div>
   <div class="rail__track">
-    <article class="dish"><div class="dish__img"><img src="/img/hero-food.jpg" alt="Square-cut chicken tikka pizza" loading="lazy" width="600" height="450"></div>
+    <article class="dish"><div class="dish__img"><img src="/food/royal-crust.jpg" alt="A Royal Crust pizza with a stuffed cheese rim, a slice lifted on a long cheese pull" loading="lazy" width="600" height="450"></div>
       <span class="dish__p">from <b>Rs 1,250</b></span>
       <div class="dish__b"><h3 class="dish__n">Royal Crust Pizza</h3>
         <p class="dish__m">The one Chiniot reviewers keep naming. “A must try.” M / L / XL.</p></div></article>
-    <article class="dish"><div class="dish__img"><img src="/img/detail-burger.jpg" alt="Fire glaze chicken close up" loading="lazy" width="600" height="450"></div>
+    <article class="dish"><div class="dish__img dish__img--none" role="img" aria-label="No photograph of Fire Glaze Chicken yet">
+        <span class="dish__soon" aria-hidden="true">Photo<br>coming<br>soon</span></div>
       <span class="dish__p"><b>Rs 850</b></span>
       <div class="dish__b"><h3 class="dish__n">Fire Glaze Chicken</h3>
         <p class="dish__m">New menu, instant regular. Sticky, sweet-hot, eat-with-hands.</p></div></article>
-    <article class="dish"><div class="dish__img"><img src="/img/detail-fries.jpg" alt="Loaded fries" loading="lazy" width="600" height="450"></div>
+    <article class="dish"><div class="dish__img"><img src="/food/fries.jpg" alt="Loaded fries under cheese sauce with grilled chicken and black olives" loading="lazy" width="600" height="450"></div>
       <span class="dish__p">from <b>Rs 700</b></span>
       <div class="dish__b"><h3 class="dish__n">Loaded Fries</h3>
         <p class="dish__m">The table's centrepiece. Order one, watch it vanish.</p></div></article>
-    <article class="dish"><div class="dish__img"><img src="/img/longshot-box.jpg" alt="A Long Shots pizza in its box, drizzled with sauce around a dip pot" loading="lazy" width="600" height="450"></div>
+    <article class="dish"><div class="dish__img"><img src="/food/squared.jpg" alt="A square-cut Squared Seasons pizza on a board, different flavours in each quarter" loading="lazy" width="600" height="450"></div>
       <span class="dish__p">from <b>Rs 1,900</b></span>
       <div class="dish__b"><h3 class="dish__n">Squared Seasons</h3>
         <p class="dish__m">Every premium flavour, one square, cut for a whole table.</p></div></article>
@@ -612,7 +663,7 @@ function home() {
     <div class="polas">
       <figure class="pola rv" style="margin:0"><div class="pola__i"><img src="/img/people-table.jpg" alt="Friends laughing around a full table at Love Bites" loading="lazy" width="500" height="500"></div>
         <figcaption class="pola__c">Four people, one Squared Seasons.<small>Faisalabad · Friday</small></figcaption></figure>
-      <figure class="pola rv" style="margin:0"><div class="pola__i"><img src="/img/detail-burger.jpg" alt="Hands squeezing a grilled chicken burger" loading="lazy" width="500" height="500"></div>
+      <figure class="pola rv" style="margin:0"><div class="pola__i"><img src="/img/detail-burger.jpg" alt="Hands squeezing a loaded burger, sauce and cheese dripping" loading="lazy" width="500" height="500"></div>
         <figcaption class="pola__c">“No other burger like this in town.”<small>Sargodha · foodpanda review</small></figcaption></figure>
       <figure class="pola rv" style="margin:0"><div class="pola__i"><img src="/img/detail-fries.jpg" alt="Loaded fries on the table" loading="lazy" width="500" height="500"></div>
         <figcaption class="pola__c">Loaded fries never make it home.<small>Chiniot · Sargodha Road</small></figcaption></figure>
@@ -622,7 +673,7 @@ function home() {
 
 ${reviewStrip()}
 
-<!-- ACT 05 — FIND YOUR LOVE BITE -->
+<!-- ACT 06 — FIND YOUR LOVE BITE -->
 <section class="band band--paper spots">
   <div class="wrap">
     <p class="act">Act 06 — Find your Love Bite</p>
@@ -644,7 +695,7 @@ ${reviewStrip()}
     </div>
   </div>
 </section>
-</main>` + tail();
+</main>` + tail('', null, { crave: CRAVINGS });
 }
 
 // `lvl` keeps the heading outline legal: on the homepage these cards sit under
@@ -673,11 +724,11 @@ function spotCard(b, lvl = 3) {
     <dl class="pass__rows">
       <div><dt>Where</dt><dd>${b.street}</dd></div>
       <div><dt>Hours</dt><dd><strong>${b.hours}</strong> · every day</dd></div>
-      <div><dt>Rated</dt><dd><strong>${b.rating}</strong> · ${nf(b.reviews)} reviews <span class="pass__src">${b.ratingSrc}</span></dd></div>
+      <div><dt>Rated</dt><dd><strong>${b.rating}</strong> · ${b.reviewsLabel} reviews <span class="pass__src">${b.ratingSrc}</span></dd></div>
       <div><dt>Order</dt><dd>${b.heroes.join(' · ')}</dd></div>
     </dl>
     <div class="pass__row">
-      <a class="btn btn--sm btn--cheese pass__cta1" href="/spots/${b.slug}/">${I.heart} This spot</a>
+      <a class="btn btn--sm btn--cheese pass__cta1" href="/spots/${b.slug}/">${I.heart} See this spot</a>
       <a class="btn btn--sm btn--ink" href="${dirUrl(b)}" target="_blank" rel="noopener">${I.pin} Directions</a>
       <a class="btn btn--sm" href="tel:${b.tel}" aria-label="Call Love Bites ${b.city}">${I.phone} Call</a>
       <a class="btn btn--sm btn--wa" href="https://wa.me/${b.wa}" target="_blank" rel="noopener" aria-label="WhatsApp Love Bites ${b.city}">${I.wa} WhatsApp</a>
@@ -700,8 +751,11 @@ function menuPage() {
 <div data-branch-panel="${b.slug}"${b.slug !== 'chiniot' ? ' hidden' : ''} id="${b.slug}">
   ${menus[b.menuIdx].map((c, ci) => {
     const m = catMeta(c.id), r = priceRange(c), hero = CATIMG[c.id];
+    // Only the default (Chiniot) panel owns the plain fragment ids that outside
+    // links point at (#regular-flavor-pizza …). The other panels jump via
+    // data-cat from JS — keeping ids off them means zero duplicates in the DOM.
     return `
-  <section class="menusec" data-cat="${c.id}" id="${c.id}" style="--cat-bg:${m.bg};--cat-fg:${m.fg}">
+  <section class="menusec" data-cat="${c.id}"${b.slug === 'chiniot' ? ` id="${c.id}"` : ''} style="--cat-bg:${m.bg};--cat-fg:${m.fg}">
     <div class="wrap">
       <header class="cathead${hero ? ' cathead--hero' : ''}">
         <div class="cathead__txt">
@@ -709,7 +763,7 @@ function menuPage() {
           <h2>${c.title}</h2>
           <p class="cathead__n">${c.items.length} ${c.items.length === 1 ? 'item' : 'items'}${r ? ` · from Rs ${nf(r.min)}` : ''} · ${b.city} prices</p>
         </div>
-        ${hero ? `<figure class="cathead__img${hero.poster ? ' cathead__img--poster' : ''}"><img src="${hero.src}" alt="${hero.alt}" loading="lazy" decoding="async"></figure>` : ''}
+        ${hero ? `<figure class="cathead__img${hero.poster ? ' cathead__img--poster' : ''}"><img src="${hero.src}" alt="${hero.alt}" width="900" height="900" loading="lazy" decoding="async"></figure>` : ''}
       </header>
       <div class="items">
         ${c.items.map(it => {
@@ -731,7 +785,7 @@ function menuPage() {
   <div class="wrap"><p class="pricenote">
     <strong>${b.city} note:</strong> ${b.note} Prices shown are dine-in / takeaway as published by Love Bites.
     <strong>All prices are exclusive of tax (GST)</strong>, as printed on the branch menu.
-    Delivery apps price separately. Last checked ${new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })} —
+    Delivery apps price separately. Last checked ${DATA_ASOF} —
     if something at the counter differs, the counter is right. <a href="/spots/${b.slug}/">Call ${b.city}</a> to confirm.
   </p>
   <p class="pricenote pricenote--img">Photography note: dishes marked with a small dot are illustrated with a
@@ -762,6 +816,7 @@ function menuPage() {
 <div class="branchbar">
   <div class="branchbar__in">
     <span class="branchbar__lbl">Prices for</span>
+    <noscript><span class="branchbar__lbl" style="opacity:1">— city switching needs JavaScript, showing Chiniot prices</span></noscript>
     <div class="bswitch" role="group" aria-label="Choose branch">
       ${BRANCHES.map((b, i) => `<button type="button" data-branch="${b.slug}" aria-pressed="${i === 0}">${b.city}</button>`).join('')}
     </div>
@@ -792,7 +847,7 @@ ${body}
     </div>
   </div>
 </section>
-</main>` + tail(`window.LB_CATS=${JSON.stringify(catData)};`);
+</main>` + tail('', null, { cats: catData });
 }
 
 /* ---------- SPOTS INDEX ---------- */
@@ -805,7 +860,7 @@ function spotsPage() {
 <main id="main">
 <header class="phead band--cheese" id="now">
   <div class="wrap">
-    <p class="act">Act 05 — Find your Love Bite</p>
+    <p class="act">Act 06 — Find your Love Bite</p>
     <h1>Pick your city.<br><span class="outline">Find your table.</span></h1>
     <p>Same recipe book, three different rooms. Chiniot is the original, Sargodha is the highest rated,
       Faisalabad is the flagship that runs till 2 a.m.</p>
@@ -833,7 +888,8 @@ function branchPage(b) {
   return head({
     title: `Love Bites ${b.city} — ${b.street.split(',')[0]} | Menu, Hours & Directions`,
     desc: `Love Bites ${b.city}: ${b.street}. Open ${b.hours}. Call ${b.phone}. ${b.order} See what people order here.`,
-    url: `/spots/${b.slug}/`, schema: [bizSchema(b), menuSchema(b), {
+    url: `/spots/${b.slug}/`, ogImage: b.photo, ogAlt: b.photoAlt,
+    schema: [bizSchema(b), menuSchema(b), {
       '@context': 'https://schema.org', '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: SITE },
@@ -844,8 +900,8 @@ function branchPage(b) {
   }) + nav('/spots/') + `
 <main id="main">
 <header class="phead" style="background:${b.hue}">
-  <img src="${b.photo}" alt="" aria-hidden="true" class="phead__bg">
-  <img src="${b.art}" alt="" aria-hidden="true" class="phead__art">
+  <img src="${b.photo}" alt="" aria-hidden="true" class="phead__bg" width="1600" height="900" decoding="async">
+  <img src="${b.art}" alt="" aria-hidden="true" class="phead__art" width="600" height="380" decoding="async">
   <div class="wrap" style="position:relative">
     <p class="act">Love Bites · since ${b.since}</p>
     <h1>${b.city}</h1>
@@ -863,10 +919,10 @@ function branchPage(b) {
 <section class="band band--paper" style="padding:clamp(2rem,5vw,3.4rem) 0">
   <div class="wrap">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.2rem">
-      <div class="quote"><cite>Address</cite><p style="margin-top:.5rem">${b.street}<br><span style="opacity:.7">${b.landmark}</span></p></div>
-      <div class="quote"><cite>Hours</cite><p style="margin-top:.5rem">Every day<br><strong>${b.hours}</strong></p></div>
-      <div class="quote"><cite>Rating</cite><p style="margin-top:.5rem">★ ${b.rating} from ${nf(b.reviews)} reviews<br><span style="opacity:.7">via ${b.ratingSrc}</span></p></div>
-      <div class="quote"><cite>Phone</cite><p style="margin-top:.5rem"><a href="tel:${b.tel}" style="text-decoration:underline">${b.phone}</a></p></div>
+      <dl class="quote quote--info"><dt>Address</dt><dd>${b.street}<br><span style="opacity:.7">${b.landmark}</span></dd></dl>
+      <dl class="quote quote--info"><dt>Hours</dt><dd>Every day<br><strong>${b.hours}</strong></dd></dl>
+      <dl class="quote quote--info"><dt>Rating</dt><dd>★ ${b.rating} from ${b.reviewsLabel} reviews<br><span style="opacity:.7">via ${b.ratingSrc}, checked ${DATA_ASOF}</span></dd></dl>
+      <dl class="quote quote--info"><dt>Phone</dt><dd><a href="tel:${b.tel}" style="text-decoration:underline">${b.phone}</a></dd></dl>
     </div>
   </div>
 </section>
@@ -890,8 +946,13 @@ function branchPage(b) {
     <p class="act">Getting there</p>
     <h2 class="h-md">Find the door in ${b.city}</h2>
     <div class="mapwrap">
-      <iframe class="mapframe" src="${embedUrl(b)}" title="Map showing Love Bites ${b.city}, ${b.street}"
-        loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="mapframe mapframe--lazy" data-map data-map-src="${embedUrl(b)}" data-map-title="Map showing Love Bites ${b.city}, ${b.street}">
+        <button class="mapframe__load" type="button" data-map-load>
+          ${I.pin}
+          <strong>Load the map</strong>
+          <small>Google Maps loads only when you tap this — that keeps Google out of your visit until you ask. The “Open in Google Maps” button works without it.</small>
+        </button>
+      </div>
       <div class="mapcard">
         <p class="mapcard__k">Love Bites ${b.city}</p>
         <p class="mapcard__a">${b.street}</p>
@@ -925,7 +986,7 @@ function branchPage(b) {
     <h2 class="h-md">What people are saying in ${b.city}</h2>
     <p class="reviews__meta">
       <span class="reviews__score">★ ${b.rating}</span>
-      <span>from <strong>${nf(b.reviews)}</strong> public reviews on ${b.ratingSrc}</span>
+      <span>from <strong>${b.reviewsLabel}</strong> public reviews on ${b.ratingSrc}, checked ${DATA_ASOF}</span>
       <a class="reviews__src" href="${mapUrl(b)}" target="_blank" rel="noopener">See them all</a>
     </p>
     <div class="quotes" data-reviews-list>
@@ -1328,15 +1389,205 @@ fs.writeFileSync(path.join(OUT, '404.html'),
     <div style="display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap">
       <a class="btn btn--hot" href="/">Back to the shop</a>
       <a class="btn" href="/menu/">See the menu</a>
+      <a class="btn" href="/spots/">Find a branch</a>
+      <a class="btn" href="/contact/">Contact us</a>
     </div>
   </div>
 </section>
 </main>` + tail());
 
-const urls = ['/', '/menu/', '/spots/', ...BRANCHES.map(b => `/spots/${b.slug}/`), '/wall/', '/story/', '/contact/'];
+/* ============================================================
+   LEGAL PAGES — plain, honest, and marked where the client
+   still owes us facts. Never fabricate policy terms.
+   ============================================================ */
+const CONFIRM = s => `<strong class="legal__confirm">[CLIENT TO CONFIRM: ${s}]</strong>`;
+const legalHead = (title, desc, url) => head({ title, desc, url });
+
+write('privacy', legalHead(
+  'Privacy Policy — Love Bites',
+  'How the Love Bites website handles your data: what we collect (almost nothing), what we do not, and how to reach us about privacy.',
+  '/privacy/') + nav('') + `
+<main id="main">
+<header class="phead band--cheese">
+  <div class="wrap">
+    <p class="act">The small print</p>
+    <h1>Privacy<br><span class="outline">policy.</span></h1>
+    <p>Short version: this website collects almost nothing about you, and we intend to keep it that way.</p>
+  </div>
+</header>
+<section class="band band--paper">
+  <div class="wrap legal">
+    <p class="legal__upd">Last updated ${DATA_ASOF}. Applies to this website only — not to orders placed through delivery platforms, which follow their own policies.</p>
+
+    <h2>1. Who we are</h2>
+    <p>Love Bites is a restaurant business operating three rooms in Chiniot, Sargodha and Faisalabad, Punjab, Pakistan.
+    ${CONFIRM('the registered legal entity name and registered address, if different from the office below')}.</p>
+    <p>Privacy questions go to <a href="mailto:${EMAIL}" style="text-decoration:underline">${EMAIL}</a> — the same inbox humans read for everything else.</p>
+
+    <h2>2. What this website collects</h2>
+    <ul>
+      <li><strong>Nothing you type is sent to us.</strong> There are no accounts, no contact forms and no checkout on this site. Contact happens by phone, WhatsApp, email or walking in — all outside this website.</li>
+      <li><strong>One local preference.</strong> If you switch city on the menu page, your choice is stored in your own browser's local storage (key <code>lb-branch</code>) so the site remembers it next visit. It never leaves your device, and clearing your browser data removes it.</li>
+      <li><strong>Server logs.</strong> Like every website, our host (Vercel) records standard technical logs — IP address, browser, pages requested — for security and reliability. ${CONFIRM('the hosting provider’s log retention period; see the Vercel data processing addendum')}.</li>
+    </ul>
+
+    <h2>3. What loads from other companies</h2>
+    <ul>
+      <li><strong>Google Maps</strong> — only after you tap “Load the map” on a branch page. Before that tap, nothing is requested from Google. Once loaded, Google's privacy policy applies to that embed.</li>
+      <li><strong>External links</strong> — our phone, WhatsApp, Instagram, Facebook and foodpanda links take you to those services, whose own policies apply there.</li>
+      <li><strong>Fonts and images</strong> are served from this website's own domain — no font or image CDNs, no advertising networks, no analytics, no tracking pixels.</li>
+    </ul>
+
+    <h2>4. What we do not do</h2>
+    <p>No advertising cookies. No analytics. No profiling. No selling or sharing visitor data. No newsletters or marketing messages from this website.</p>
+
+    <h2>5. Your rights</h2>
+    <p>Pakistan's data-protection law is still in draft form; we nevertheless follow the principles it proposes — data minimisation, purpose limitation, and deletion when data is no longer needed.
+    If you have a privacy question, complaint or request, write to <a href="mailto:${EMAIL}" style="text-decoration:underline">${EMAIL}</a> and a human will answer.
+    ${CONFIRM('a response-time commitment and an escalation contact')}.</p>
+
+    <h2>6. Children</h2>
+    <p>This is a restaurant website aimed at a general audience. We do not knowingly collect data from anyone, including children.</p>
+
+    <h2>7. Changes</h2>
+    <p>If this policy changes, the date at the top changes with it. ${CONFIRM('whether material changes will be announced on this page')}</p>
+
+    <h2>8. Contact</h2>
+    <p>Love Bites Office, Sargodha Road, Chiniot, Punjab, Pakistan · Office hours: Monday–Thursday, 11 a.m.–6 p.m. ·
+    <a href="mailto:${EMAIL}" style="text-decoration:underline">${EMAIL}</a> · <a href="tel:${BRANCHES[0].tel}" style="text-decoration:underline">${BRANCHES[0].phone}</a></p>
+    <p class="legal__note">This page is written in plain language on purpose. It is not formal legal advice; have it reviewed by a Pakistani lawyer before the site goes fully public.</p>
+  </div>
+</section>
+</main>` + tail());
+
+write('cookies', legalHead(
+  'Cookie Policy — Love Bites',
+  'What the Love Bites website stores on your device and why. Spoiler: no advertising cookies and no analytics.',
+  '/cookies/') + nav('') + `
+<main id="main">
+<header class="phead band--cyan">
+  <div class="wrap">
+    <p class="act">The small print</p>
+    <h1>Cookie<br><span class="outline">policy.</span></h1>
+    <p>The honest version — including why you will not see a cookie banner here.</p>
+  </div>
+</header>
+<section class="band band--paper">
+  <div class="wrap legal">
+    <p class="legal__upd">Last updated ${DATA_ASOF}.</p>
+
+    <h2>1. Cookies on this website</h2>
+    <p><strong>This website sets no cookies.</strong> Not analytics cookies, not advertising cookies, not “functional” cookies dressed up as either.</p>
+
+    <h2>2. Local storage (one item)</h2>
+    <p>When you pick a city on the menu page, we save that choice in your browser's local storage under the key <code>lb-branch</code>. It is a convenience for you — the site simply remembers which prices to show. It is not shared with anyone, it is not a cookie, and clearing site data removes it.</p>
+
+    <h2>3. Third-party content</h2>
+    <p>Branch pages offer a <strong>“Load the map”</strong> button. Until you tap it, nothing at all is loaded from Google. If you tap it, the Google Maps embed may set Google's own cookies — governed by <a href="https://policies.google.com/privacy" rel="noopener" style="text-decoration:underline">Google's privacy policy</a>. Tap it, or don't — the address, directions link and phone numbers work either way.</p>
+
+    <h2>4. Why there is no cookie banner</h2>
+    <p>Cookie-consent banners exist to gate non-essential storage and tracking. This site has none to gate: one local preference, and maps that load only on request. A banner here would be theatre — and theatre is not consent. If we ever add analytics, advertising or embeds that track you, this policy changes and a real choice appears before any of it loads.</p>
+
+    <h2>5. Managing local storage</h2>
+    <p>Your browser's settings let you clear site data for this domain at any time. That resets your city preference to Chiniot — everything else is unaffected.</p>
+
+    <h2>6. Questions</h2>
+    <p><a href="mailto:${EMAIL}" style="text-decoration:underline">${EMAIL}</a></p>
+    <p class="legal__note">This page is not formal legal advice; have it reviewed by a Pakistani lawyer before launch.</p>
+  </div>
+</section>
+</main>` + tail());
+
+write('terms', legalHead(
+  'Terms & Conditions — Love Bites',
+  'The rules for using the Love Bites website: prices, menus, links and what we are responsible for.',
+  '/terms/') + nav('') + `
+<main id="main">
+<header class="phead band--orange">
+  <div class="wrap">
+    <p class="act">The small print</p>
+    <h1>Terms &amp;<br><span class="outline">conditions.</span></h1>
+    <p>Plain terms for a website that sells nothing online but tells you plenty.</p>
+  </div>
+</header>
+<section class="band band--paper">
+  <div class="wrap legal">
+    <p class="legal__upd">Last updated ${DATA_ASOF}. ${CONFIRM('the registered business/legal entity name that contracts as “Love Bites”')}</p>
+
+    <h2>1. Using this website</h2>
+    <p>This website is free to browse. Use it for its intended purpose — finding our menu, our branches and ways to reach us. Do not attempt to disrupt it, scrape it into another service's storefront, or misrepresent its content as yours.</p>
+
+    <h2>2. Menu &amp; prices</h2>
+    <p>Prices shown are dine-in / takeaway prices published by Love Bites for each branch and were last checked ${DATA_ASOF}. They can change; delivery apps price separately. <strong>The counter is always right</strong> — if the website and the branch disagree, the branch price is the one that applies. All prices are exclusive of tax (GST) as printed on the branch menu.</p>
+
+    <h2>3. Orders</h2>
+    <p>This website takes no orders and no payments. Orders happen in person, by phone or WhatsApp with a branch, or through delivery platforms such as foodpanda — each governed by their own terms. ${CONFIRM('any catering or large-order terms the business wants published')}</p>
+
+    <h2>4. Reviews &amp; ratings</h2>
+    <p>Quoted reviews are real, publicly posted reviews from Google and foodpanda listings, shortened only for length and attributed to their source. Ratings are snapshots from those platforms, dated when checked. They are third-party content; we do not write it and we do not warrant its accuracy.</p>
+
+    <h2>5. Intellectual property</h2>
+    <p>The Love Bites name, heart-burger mark, poster artwork, photography and site copy belong to Love Bites ${CONFIRM('confirm the IP owner is the trading entity, and the licence status of any commissioned photography or design work')}. Third-party names (Google, WhatsApp, Instagram, Facebook, foodpanda) belong to their owners and are used only to link to their services.</p>
+
+    <h2>6. Links to other services</h2>
+    <p>Links to maps, messaging and delivery platforms are provided for convenience. Their content and policies are theirs, not ours.</p>
+
+    <h2>7. Availability</h2>
+    <p>We keep the site accurate and online, but menus, hours and branches change. The website is provided as-is; to the extent the law allows, we are not liable for decisions taken purely on the basis of stale website information. Nothing here limits rights you have under Pakistani consumer law — including the Punjab Consumer Protection Act 2005, under which our published claims must be accurate.</p>
+
+    <h2>8. Governing law</h2>
+    <p>${CONFIRM('the governing law and the courts/authority for disputes — presumably Punjab, Pakistan')}.</p>
+
+    <h2>9. Contact</h2>
+    <p><a href="mailto:${EMAIL}" style="text-decoration:underline">${EMAIL}</a> · Love Bites Office, Sargodha Road, Chiniot · Office hours: Monday–Thursday, 11 a.m.–6 p.m.</p>
+    <p class="legal__note">This page is not formal legal advice; have it reviewed by a Pakistani lawyer before launch.</p>
+  </div>
+</section>
+</main>` + tail());
+
+write('refund-policy', legalHead(
+  'Refund & Cancellation Policy — Love Bites',
+  'What to do when an order goes wrong at Love Bites: dine-in, takeaway, phone orders and delivery-platform orders.',
+  '/refund-policy/') + nav('') + `
+<main id="main">
+<header class="phead band--cheese">
+  <div class="wrap">
+    <p class="act">The small print</p>
+    <h1>Refunds &amp;<br><span class="outline">cancellations.</span></h1>
+    <p>Things go wrong sometimes. Here is how we handle it — and how to ask.</p>
+  </div>
+</header>
+<section class="band band--paper">
+  <div class="wrap legal">
+    <p class="legal__upd">Last updated ${DATA_ASOF}. This website takes no online payments; every policy below concerns orders made directly with a branch or through a delivery platform.</p>
+
+    <h2>1. Something is wrong with my order</h2>
+    <p>Tell us before you leave the table, or call the branch that made your order as soon as you notice. Keep the bill and the food. We would rather fix the meal than argue about it. ${CONFIRM('confirm this goodwill framing with the owners — it sets a customer expectation the branches must honour')}</p>
+
+    <h2>2. Dine-in &amp; takeaway</h2>
+    <p>${CONFIRM('the branch-level policy: replacement vs refund, time limits, and who approves it. Suggested shape: incorrect or unsatisfactory items are replaced or refunded at the branch manager’s discretion, with proof of purchase')}.</p>
+
+    <h2>3. Phone / WhatsApp orders</h2>
+    <p>Call the branch directly and before the food leaves the kitchen if you need to cancel. ${CONFIRM('whether cancellations are accepted after preparation begins, and any cost that applies')}.</p>
+
+    <h2>4. Delivery platform orders (foodpanda)</h2>
+    <p>Orders placed on foodpanda follow foodpanda's refund and dispute process — use the order's help option in their app. Platform policies override this page for platform orders.</p>
+
+    <h2>5. Prices &amp; billing errors</h2>
+    <p>If you were charged a price that differs from the published branch price, tell the branch with your bill and it will be corrected or refunded. All published prices are exclusive of GST as printed on the branch menu.</p>
+
+    <h2>6. How to ask</h2>
+    <p>Phone or WhatsApp the branch (numbers on the <a href="/contact/" style="text-decoration:underline">contact page</a>), or write to <a href="mailto:${EMAIL}" style="text-decoration:underline">${EMAIL}</a> for anything a phone call cannot sort out.</p>
+    <p class="legal__note">This page is not formal legal advice; have it reviewed by a Pakistani lawyer before launch. Refund duties that exist under Pakistani consumer law are not limited by this page.</p>
+  </div>
+</section>
+</main>` + tail());
+
+const urls = ['/', '/menu/', '/spots/', ...BRANCHES.map(b => `/spots/${b.slug}/`), '/wall/', '/story/', '/contact/', '/privacy/', '/cookies/', '/terms/', '/refund-policy/'];
+const TODAY = new Date().toISOString().slice(0, 10);
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-  urls.map(u => `<url><loc>${SITE}${u}</loc><changefreq>weekly</changefreq><priority>${u === '/' ? '1.0' : '0.8'}</priority></url>`).join('\n') +
+  urls.map(u => `<url><loc>${SITE}${u}</loc><lastmod>${TODAY}</lastmod><changefreq>weekly</changefreq><priority>${u === '/' ? '1.0' : '0.8'}</priority></url>`).join('\n') +
   `\n</urlset>\n`);
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 
